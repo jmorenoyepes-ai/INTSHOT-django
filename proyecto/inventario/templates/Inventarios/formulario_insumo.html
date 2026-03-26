@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg">
+    <div class="container text-center"></div>
+    {% if datos %}
+    <h1 class="display-4" style="text-align: center;">Actualizar Insumo: {{datos}}</h1>
+    {% else %}
+    <h1 class="display-4" style="text-align: center;">Crear Insumo</h1>
+    {% endif %}
+    <form action="" method="post">
+        {% csrf_token %}
+        <div class="row align-items-start">
+
+            <div class="col">
+                <input value="{{datos.nombre}}" type="text" name="nombre" placeholder="Nombre del producto"
+                    class="form-control">
+                <br>
+                <input value="{{datos.descripcion}}" type="text" name="descripcion"
+                    placeholder="Descripcion del producto" class="form-control">
+                <br>
+                <input value="{{datos.tipo}}" type="text" name="tipo" placeholder="Tipo del producto"
+                    class="form-control">
+                <br>
+                
+            </div>
+            <div class="col">
+                <input value="{{datos.unidad_medida}}" type="text" name="unidad_medida" placeholder="Unidad de medida del producto"
+                    class="form-control">
+                <br>
+                <input value="{{datos.stock}}" type="number" min="0" max="999" name="stock" placeholder="Stock del producto" class="form-control">
+                <br>
+            </div>
+            <div class="zona_botones">
+                <div class="col-4 d-grid mx-auto">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg">
+    <div class="container text-center"></div>
+        {% if datos %}
+            <h1 class="display-4" style="text-align: center;">Actualizar Usuario: {{datos}}</h1>
+        {% else %}
+            <h1 class="display-4" style="text-align: center;">Crear Usuario</h1>
+        {% endif %}
+        <form action="" method="post">
+            {% csrf_token %}
+            <div class="row align-items-start">
+                <div class="col">
+                    <input value="{{datos.nombre}}" type="text" name="nombre" placeholder="Nombre del Usuario" class="form-control">
+                    <br>
+                    <input value="{{datos.apellido}}" type="text" name="apellido" placeholder="Apellido del Usuario" class="form-control">
+                    <br>
+                    <input value="{{datos.correo}}" type="email" name="correo" placeholder="Correo del Usuario" class="form-control">
+                    <br>
+                    
+                </div>
+                <div class="col">
+                    <input value="{{datos.telefono}}" type="text" name="telefono" placeholder="Telefono del Usuario" class="form-control">
+                    <br>
+                    <select name="rol" class="form-select">
+                        <option value="">Seleccione el Rol</option>
+                        <option value="Empleado" {% if datos.rol == 'Empleado' %}selected=""{% endif %}>Empleado</option>
+                        <option value="Cliente"  {% if datos.rol == 'Cliente' %}selected=""{% endif %}>Cliente</option>
+                    </select>
+                    <br>
+                </div>
+                <div class="zona_botones">
+                    <div class="col-4 d-grid mx-auto">
+                        <button type="submit" class="btn btn-success">Guardar</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
