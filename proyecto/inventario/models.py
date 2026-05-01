@@ -3,7 +3,8 @@ from django.db import models
 class Usuario(models.Model):
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
-    correo = models.EmailField(max_length=254)
+    correo = models.EmailField(max_length=254, unique=True)
+    password = models.CharField(max_length=254)
     telefono = models.CharField(max_length=20)
     ROLES = (
         ("Empleado", "EMPLEADO"),

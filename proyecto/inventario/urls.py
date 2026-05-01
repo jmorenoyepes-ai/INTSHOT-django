@@ -6,8 +6,9 @@ from . import views
 app_name = "inventario"
 urlpatterns = [
     path('', views.login, name="login"),
+    path('logout', views.logout, name="logout"),
     
-    path('inicio/', views.index, name="index"),
+    path('inicio/', views.inicio, name="inicio"),
 
     path('base/', views.base, name="base"),
     # path('productos/', views.productos, name="productos"),

@@ -5,7 +5,7 @@ from .models import *
 # Register your models here.
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ["id", "nombre", "apellido", "rol", "telefono", "correo"]
+    list_display = ["id", "nombre", "apellido", "rol", "telefono", "correo",  "password"]
     list_filter = ["rol"]
     search_fields = ["nombre", "apellido", "correo"]
     # list_editable = ["rol"]

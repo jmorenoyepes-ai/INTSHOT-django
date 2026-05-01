@@ -7,6 +7,14 @@
 <section id="inicio" class="bienvenida">
     <section class="welcome">
         <div class="texto_bienvenida">
+            {% if request.session.logueado %}
+                <h2>Bienvenido:</h2> 
+                {{ request.session.logueado.nombre }}!!
+                <br>
+            {% else %}
+            No hay sesión.......
+            {% endif %}
+
             <h2>Optimiza la gestión de tu inventario y pedidos con <strong>INTSHOT</strong></h2>
             <p>
                 Un sistema diseñado especialmente para empresas textiles que buscan
