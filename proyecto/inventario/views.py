@@ -47,6 +47,33 @@ def login(request):
             return redirect("inventario:inicio")
         else:
             return render(request, "login.html")
+        
+def registrarse(request):
+    if request.method == "POST":
+        # proceso datos
+        # ('nombre', 'apellido', 'correo', 'telefono', 'rol' )
+        try:
+            if request.POST.get('password') == request.POST.get('veri_password'):
+                t = Usuario(
+                    nombre = request.POST.get('nombre'),
+                    apellido = request.POST.get('apellido'), 
+                    correo = request.POST.get('correo'), 
+                    telefono = request.POST.get('telefono'),
+                    password = request.POST.get('password'),
+                )
+                t.save()
+                messages.success(request, "Usuario guardado con éxito!!!")
+            else:
+                messages.error(request, "Las contraseñas no coinciden")
+                return redirect ("inventario:registrarse")
+        except Exception as e:
+            messages.error(request, f"Error : {e}")
+
+        return redirect ('inventario:login')
+
+    else:
+        # mostrar formulario
+        return render(request, "registro_formulario.html")
 
 @verificar_autenticacion
 def logout(request):
@@ -101,15 +128,20 @@ def crear_usuario(request):
         # proceso datos
         # ('nombre', 'apellido', 'correo', 'telefono', 'rol' )
         try:
-            t = Usuario(
-                nombre = request.POST.get('nombre'),
-                apellido = request.POST.get('apellido'), 
-                correo = request.POST.get('correo'), 
-                telefono = request.POST.get('telefono'),
-                rol = request.POST.get('rol'), 
-            )
-            t.save()
-            messages.success(request, "Usuario guardado con éxito!!!")
+            if request.POST.get('password') == request.POST.get('veri_password'):
+                t = Usuario(
+                    nombre = request.POST.get('nombre'),
+                    apellido = request.POST.get('apellido'), 
+                    correo = request.POST.get('correo'), 
+                    telefono = request.POST.get('telefono'),
+                    rol = request.POST.get('rol'), 
+                    password = request.POST.get('password'),
+                )
+                t.save()
+                messages.success(request, "Usuario guardado con éxito!!!")
+            else:
+                messages.error(request, "Las contraseñas no coinciden")
+                return redirect ("inventario:crear_usuario")
         except Exception as e:
             messages.error(request, f"Error : {e}")
 

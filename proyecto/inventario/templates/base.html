@@ -22,6 +22,8 @@
     <div class="principal">
         <div class="banner">
             {% include 'menu.html' %}
+            <br>
+            {% include 'notificaciones.html' %}
         </div>
         <div class="cuerpo">
             {% block cuerpo %}
@@ -33,7 +35,6 @@
         </div>
     </div>
 
-    {% include 'notificaciones.html' %}
 
     <div class="modal fade" id="confirmacion" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">

@@ -16,12 +16,13 @@
 </head>
 <body>
     <div class="container">
+        {% include 'notificaciones.html' %}
+
         {% block cuerpo %}
         
         {% endblock %}
     </div>
 
-    {% include 'notificaciones.html' %}
 
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/librerias.js' %}"></script>

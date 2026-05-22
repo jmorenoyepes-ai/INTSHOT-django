@@ -17,34 +17,34 @@
                                 </div>         
                                 <form method="post">
                                     {% csrf_token %}
-                                    <p>Inicio de sesión</p>
+                                        <p>Inicio de sesión</p>
 
-                                    <div data-mdb-input-init class="form-outline mb-4">
-                                        <input type="text" id="form2Example11" class="form-control" name="user" />
-                                        <label class="form-label" for="form2Example11" >Usuario</label>
-                                    </div>
+                                        <div data-mdb-input-init class="form-outline mb-4">
+                                            <input type="text" id="form2Example11" class="form-control" name="user" placeholder="Digite su correo" />
+                                            <label class="form-label" for="form2Example11" >Usuario</label>
+                                        </div>
 
-                                    <div data-mdb-input-init class="form-outline mb-4">
-                                        <input type="password" id="form2Example22" class="form-control" name="password" />
-                                        <label class="form-label" for="form2Example22"
-                                            >Contraseña</label>
-                                    </div>
+                                        <div data-mdb-input-init class="form-outline mb-4">
+                                            <input type="password" id="form2Example22" class="form-control" name="password" placeholder="Digite su contraseña" />
+                                            <label class="form-label" for="form2Example22"
+                                                >Contraseña</label>
+                                        </div>
 
-                                    <div class="text-center pt-1 mb-5 pb-1">
-                                        <button data-mdb-button-init data-mdb-ripple-init
-                                            class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3"
-                                            type="submit">Login</button>
-                                        <br>
-                                        <a class="text-muted" href="#!">Olvidaste tu contraseña?</a>
-                                    </div>
+                                        <div class="text-center pt-1 mb-5 pb-1">
+                                            <button data-mdb-button-init data-mdb-ripple-init
+                                                class="btn btn-primary btn-block fa-lg gradient-custom-2 mb-3"
+                                                type="submit">Login</button>
+                                            <br>
+                                            <a class="text-muted" href="#!">Olvidaste tu contraseña?</a>
+                                        </div>
 
-                                    <div class="d-flex align-items-center justify-content-center pb-4">
-                                        <p class="mb-0 me-2">No tienes cuenta?</p>
-                                        <button type="button" data-mdb-button-init data-mdb-ripple-init
-                                            class="btn btn-outline-primary">
-                                            Registrarse
-                                        </button>
-                                    </div>
+                                        <div class="d-flex align-items-center justify-content-center pb-4">
+                                            <p class="mb-0 me-2">No tienes cuenta?</p>
+                                            <a href="{% url 'inventario:registrarse' %}" type="button" data-mdb-button-init data-mdb-ripple-init
+                                                class="btn btn-outline-primary">
+                                                Registrarse
+                                            </a>
+                                        </div>
 
                                 </form>
 

@@ -10,6 +10,7 @@
     "footer footer footer";
     
 }
+
 .banner { grid-area: banner; }
 
 .cuerpo { grid-area: cuerpo; }
