@@ -7,6 +7,7 @@ class Usuario(models.Model):
     password = models.CharField(max_length=254)
     telefono = models.CharField(max_length=20)
     ROLES = (
+        ("Administrador", "ADMINISTRADOR"),
         ("Empleado", "EMPLEADO"),
         ("Cliente", "CLIENTE"),
     )

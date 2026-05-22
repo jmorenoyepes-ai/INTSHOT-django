@@ -75,7 +75,7 @@ def registrarse(request):
         # mostrar formulario
         return render(request, "registro_formulario.html")
 
-@verificar_autenticacion
+@autorizacion()
 def logout(request):
     try:
         del request.session["logueado"]
@@ -85,18 +85,18 @@ def logout(request):
         messages.warning(request, f"Error: {e}")
         return redirect("inventario:inicio")
 
-@verificar_autenticacion
+@autorizacion()
 def inicio(request):
 
     return render(request, "index.html")
 
-@verificar_autenticacion
+@autorizacion()
 def base(request):
     
     return render(request, "base.html")
 
 # CRUD de usuarios
-@verificar_autenticacion
+@autorizacion(["Administrador"])
 def ver_usuarios(request):
     # consulta: traer todos los usuarios
     t = Usuario.objects.all()
@@ -105,7 +105,7 @@ def ver_usuarios(request):
     }
     return render(request, "Usuario/usuarios.html", contexto)
 
-@verificar_autenticacion
+@autorizacion(["Administrador"])
 def eliminar_usuario(request, id):
     # a = SELECT * FROM Usuario where id=id
     # del a
@@ -122,7 +122,7 @@ def eliminar_usuario(request, id):
     
     return redirect("inventario:usuarios")
 
-@verificar_autenticacion
+@autorizacion(["Administrador"])
 def crear_usuario(request):
     if request.method == "POST":
         # proceso datos
@@ -151,7 +151,7 @@ def crear_usuario(request):
         # mostrar formulario
         return render(request, "Usuario/formulario_usuario.html")
 
-@verificar_autenticacion
+@autorizacion(["Administrador"])
 def actualizar_usuario(request, id):
     
     if request.method == "POST":
@@ -178,7 +178,7 @@ def actualizar_usuario(request, id):
 
 
 # CRUD de Productos
-@verificar_autenticacion
+@autorizacion(["Empleado"])
 def ver_productos(request):
     # consulta: traer todos los productos
     t = Producto.objects.all()
@@ -187,7 +187,7 @@ def ver_productos(request):
     }
     return render(request, "Inventarios/productos.html", contexto)
 
-@verificar_autenticacion
+@autorizacion(["Empleado"])
 def eliminar_producto(request, id):
     # a = SELECT * FROM Producto where id=id
     # del a
@@ -204,7 +204,7 @@ def eliminar_producto(request, id):
     
     return redirect("inventario:productos")
 
-@verificar_autenticacion
+@autorizacion(["Empleado"])
 def crear_producto(request):
     if request.method == "POST":
         # proceso datos
@@ -229,7 +229,7 @@ def crear_producto(request):
         # mostrar formulario
         return render(request, "Inventarios/formulario_producto.html")
 
-@verificar_autenticacion
+@autorizacion(["Empleado"])
 def actualizar_producto(request, id):
     
     if request.method == "POST":
@@ -256,7 +256,7 @@ def actualizar_producto(request, id):
         return render(request, "Inventarios/formulario_producto.html", contexto)
 
 # CRUD de Insumos
-@verificar_autenticacion
+@autorizacion()
 def ver_insumos(request):
     # consulta: traer todos los insumos
     t = Insumo.objects.all()
@@ -265,7 +265,7 @@ def ver_insumos(request):
     }
     return render(request, "Inventarios/insumos.html", contexto)
 
-@verificar_autenticacion
+@autorizacion()
 def eliminar_insumo(request, id):
     # a = SELECT * FROM Insumo where id=id
     # del a
@@ -282,7 +282,7 @@ def eliminar_insumo(request, id):
     
     return redirect("inventario:insumos")
 
-@verificar_autenticacion
+@autorizacion()
 def crear_insumo(request):
     if request.method == "POST":
         # proceso datos
@@ -306,7 +306,7 @@ def crear_insumo(request):
         # mostrar formulario
         return render(request, "Inventarios/formulario_insumo.html")
 
-@verificar_autenticacion
+@autorizacion()
 def actualizar_insumo(request, id):
     
     if request.method == "POST":

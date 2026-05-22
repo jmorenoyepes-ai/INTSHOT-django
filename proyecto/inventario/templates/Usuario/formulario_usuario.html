@@ -30,6 +30,7 @@
                     <br>
                     <select name="rol" class="form-select">
                         <option value="">Seleccione el Rol</option>
+                        <option value="Administrador" {% if datos.rol == 'Administrador' %}selected=""{% endif %}>Administrador</option>
                         <option value="Empleado" {% if datos.rol == 'Empleado' %}selected=""{% endif %}>Empleado</option>
                         <option value="Cliente"  {% if datos.rol == 'Cliente' %}selected=""{% endif %}>Cliente</option>
                     </select>
