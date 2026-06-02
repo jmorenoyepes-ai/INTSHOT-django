@@ -12,14 +12,9 @@ class UsuarioAdmin(admin.ModelAdmin):
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):
-    list_display = ["id", "nombre", "color", "descripcion", "categoria", "talla", "stock"]
+    list_display = ["id", "nombre", "color", "descripcion", "categoria", "talla", "stock" , "precio"]
     list_filter = ["categoria", "talla"]
     search_fields = ["nombre", "color", "categoria", "talla"]
 
 
-@admin.register(Insumo)
-class InsumoAdmin(admin.ModelAdmin):
-    list_display = ["id", "nombre", "descripcion", "tipo", "unidad_medida", "stock"]
-    list_filter = ["tipo", "unidad_medida"]
-    search_fields = ["nombre", "tipo", "unidad_medida"]
 

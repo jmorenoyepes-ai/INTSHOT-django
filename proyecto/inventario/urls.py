@@ -27,9 +27,4 @@ urlpatterns = [
     path('crear_producto/', views.crear_producto, name="crear_producto"),
     path('actualizar_producto/<int:id>/', views.actualizar_producto, name="actualizar_producto"),
 
-    # módulo insumos
-    path('insumos/', views.ver_insumos, name="insumos"),
-    path('eliminar_insumo/<int:id>/', views.eliminar_insumo, name="eliminar_insumo"),
-    path('crear_insumo/', views.crear_insumo, name="crear_insumo"),
-    path('actualizar_insumo/<int:id>/', views.actualizar_insumo, name="actualizar_insumo"),
 ]

@@ -217,6 +217,7 @@ def crear_producto(request):
                 categoria = request.POST.get('categoria'),
                 talla = request.POST.get('talla'), 
                 stock = request.POST.get('stock'), 
+                precio = request.POST.get('precio')
             )
             t.save()
             messages.success(request, "Producto guardado con éxito!!!")
@@ -241,6 +242,7 @@ def actualizar_producto(request, id):
             q.categoria = request.POST.get('categoria')
             q.talla = request.POST.get('talla')
             q.stock = request.POST.get('stock')
+            q.precio = request.POST.get('precio')
             q.save()
             messages.success(request, "Producto actualizado con éxito!!!")
         except Exception as e:
@@ -255,78 +257,4 @@ def actualizar_producto(request, id):
         }
         return render(request, "Inventarios/formulario_producto.html", contexto)
 
-# CRUD de Insumos
-@autorizacion()
-def ver_insumos(request):
-    # consulta: traer todos los insumos
-    t = Insumo.objects.all()
-    contexto = {
-        "datos": t
-    }
-    return render(request, "Inventarios/insumos.html", contexto)
 
-@autorizacion()
-def eliminar_insumo(request, id):
-    # a = SELECT * FROM Insumo where id=id
-    # del a
-    try:
-        q = Insumo.objects.get(pk=id)
-        q.delete()
-        messages.success(request, f"Insumo '{q.nombre}' eliminado!!")
-    except IntegrityError:
-        messages.info(request, f"No se puede eliminar el insumo porque tiene registros relacionados.")
-    except Insumo.DoesNotExist:
-        messages.warning(request, f"Alerta. El insumo no se encontró")
-    except Exception as e:
-        messages.error(request, f"Error al eliminar el insumo. {e}")
-    
-    return redirect("inventario:insumos")
-
-@autorizacion()
-def crear_insumo(request):
-    if request.method == "POST":
-        # proceso datos
-        # ('nombre', 'descripcion', 'tipo', 'unidad_medida', 'stock', )
-        try:
-            t = Insumo(
-                nombre = request.POST.get('nombre'),
-                descripcion = request.POST.get('descripcion'), 
-                tipo = request.POST.get('tipo'), 
-                unidad_medida = request.POST.get('unidad_medida'),
-                stock = request.POST.get('stock'), 
-            )
-            t.save()
-            messages.success(request, "Insumo guardado con éxito!!!")
-        except Exception as e:
-            messages.error(request, f"Error : {e}")
-
-        return redirect ('inventario:insumos')
-
-    else:
-        # mostrar formulario
-        return render(request, "Inventarios/formulario_insumo.html")
-
-@autorizacion()
-def actualizar_insumo(request, id):
-    
-    if request.method == "POST":
-        try:
-            q = Insumo.objects.get(pk = id)
-            q.nombre = request.POST.get('nombre')
-            q.descripcion = request.POST.get('descripcion')
-            q.tipo = request.POST.get('tipo')
-            q.unidad_medida = request.POST.get('unidad_medida')
-            q.stock = request.POST.get('stock')
-            q.save()
-            messages.success(request, "Insumo actualizado con éxito!!!")
-        except Exception as e:
-            messages.error(request, f"Error : {e}")
-
-        return redirect ('inventario:insumos')
-        
-    else:
-        q = Insumo.objects.get(pk = id)
-        contexto = {
-            "datos" : q
-        }
-        return render(request, "Inventarios/formulario_insumo.html", contexto)

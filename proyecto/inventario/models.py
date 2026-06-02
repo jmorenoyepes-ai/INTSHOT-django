@@ -23,17 +23,8 @@ class Producto(models.Model):
     categoria = models.CharField(max_length=50)
     talla = models.CharField(max_length=10)
     stock = models.IntegerField(default=0)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"{self.id} - {self.nombre} {self.talla} - Rol: {self.color}"
     
-class Insumo(models.Model):
-    nombre = models.CharField(max_length=100)
-    descripcion = models.CharField(max_length=254)
-    tipo = models.CharField(max_length=50)
-    unidad_medida = models.CharField(max_length=50)
-    stock = models.IntegerField(default=0)
-
-
-    def __str__(self):
-        return f"{self.id} - {self.nombre} {self.tipo}"
