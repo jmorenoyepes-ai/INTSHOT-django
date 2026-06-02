@@ -26,8 +26,15 @@
 
             </div>
             <div class="col">
-                <input value="{{datos.categoria}}" type="text" name="categoria" placeholder="Categoria del producto"
-                    class="form-control">
+                <select name="categoria" class="form-select">
+                        <option value="">Seleccione la Categotia</option>
+                        <option value="Camisetas" {% if datos.categoria == 'Camisetas' %}selected=""{% endif %}>Camisetas</option>
+                        <option value="Pantalones" {% if datos.categoria == 'Pantalones' %}selected=""{% endif %}>Pantalones</option>
+                        <option value="Chaquetas"  {% if datos.categoria == 'Chaquetas' %}selected=""{% endif %}>Chaquetas</option>
+                        <option value="Accesorios"  {% if datos.categoria == 'Accesorios' %}selected=""{% endif %}>Accesorios</option>
+                        <option value="Insumos"  {% if datos.categoria == 'Insumos' %}selected=""{% endif %}>Insumos</option>
+                        <option value="Otros"  {% if datos.categoria == 'Otros' %}selected=""{% endif %}>Otros</option>
+                </select>
                 <br>
                 <input value="{{datos.talla}}" type="text" name="talla" placeholder="Talla del producto"
                     class="form-control">

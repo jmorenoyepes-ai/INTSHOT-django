@@ -20,10 +20,20 @@ class Producto(models.Model):
     nombre = models.CharField(max_length=100)
     color = models.CharField(max_length=30)
     descripcion = models.CharField(max_length=254)
-    categoria = models.CharField(max_length=50)
     talla = models.CharField(max_length=10)
     stock = models.IntegerField(default=0)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
+    CATEGORIAS = (
+        ("Camisetas", "CAMISETAS"),
+        ("Pantalones", "PANTALONES"),
+        ("Chaquetas", "CHAQUETAS"),
+        ("Accesorios", "ACCESORIOS"),
+        ("Insumos", "INSUMOS"),
+        ("Otros", "OTROS"),
+    )
+
+    categoria = models.CharField(max_length=50, choices=CATEGORIAS )
+
 
     def __str__(self):
         return f"{self.id} - {self.nombre} {self.talla} - Rol: {self.color}"
