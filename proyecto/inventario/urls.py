@@ -27,4 +27,10 @@ urlpatterns = [
     path('crear_producto/', views.crear_producto, name="crear_producto"),
     path('actualizar_producto/<int:id>/', views.actualizar_producto, name="actualizar_producto"),
 
+    # módulo proveedores
+    path('proveedores/', views.ver_proveedores, name="proveedores"),
+    path('eliminar_proveedor/<int:id>/', views.eliminar_proveedor, name="eliminar_proveedor"),
+    path('crear_proveedor/', views.crear_proveedor, name="crear_proveedor"),
+    path('actualizar_proveedor/<int:id>/', views.actualizar_proveedor, name="actualizar_proveedor"),
+
 ]

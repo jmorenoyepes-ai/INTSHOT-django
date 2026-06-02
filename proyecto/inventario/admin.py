@@ -16,5 +16,9 @@ class ProductoAdmin(admin.ModelAdmin):
     list_filter = ["categoria", "talla"]
     search_fields = ["nombre", "color", "categoria", "talla"]
 
-
+@admin.register(Proveedor)
+class ProveedorAdmin(admin.ModelAdmin):
+    list_display = ["id", "nombre", "telefono", "correo", ]
+    list_filter = ["nombre"]
+    search_fields = ["nombre", "telefono", "correo"]
 

@@ -258,3 +258,73 @@ def actualizar_producto(request, id):
         return render(request, "Inventarios/formulario_producto.html", contexto)
 
 
+# CRUD de proveedores
+@autorizacion(["Administrador", "Empleado"])
+def ver_proveedores(request):
+    # consulta: traer todos los proveedores
+    t = Proveedor.objects.all()
+    contexto = {
+        "datos": t
+    }
+    return render(request, "Proveedor/proveedor.html", contexto)
+
+@autorizacion(["Administrador", "Empleado"])
+def eliminar_proveedor(request, id):
+    # a = SELECT * FROM Proveedor where id=id
+    # del a
+    try:
+        q = Proveedor.objects.get(pk=id)
+        q.delete()
+        messages.success(request, f"Proveedor '{q.nombre}' eliminado!!")
+    except IntegrityError:
+        messages.info(request, f"No se puede eliminar el proveedor porque tiene registros relacionados.")
+    except Proveedor.DoesNotExist:
+        messages.warning(request, f"Alerta. El proveedor no se encontró")
+    except Exception as e:
+        messages.error(request, f"Error al eliminar el proveedor. {e}")
+    
+    return redirect("inventario:proveedores")
+
+@autorizacion(["Administrador", "Empleado"])
+def crear_proveedor(request):
+    if request.method == "POST":
+        try:
+                t = Proveedor(
+                    nombre = request.POST.get('nombre'),
+                    telefono = request.POST.get('telefono'),
+                    correo = request.POST.get('correo'), 
+                )
+                t.save()
+                messages.success(request, "Proveedor guardado con éxito!!!")
+        except Exception as e:
+            messages.error(request, f"Error : {e}")
+            return redirect ("inventario:crear_proveedor")
+
+        return redirect ('inventario:proveedores')
+
+    else:
+        # mostrar formulario
+        return render(request, "Proveedor/formulario_proveedor.html")
+
+@autorizacion(["Administrador", "Empleado"])
+def actualizar_proveedor(request, id):
+    
+    if request.method == "POST":
+        try:
+            q = Proveedor.objects.get(pk = id)
+            q.nombre = request.POST.get('nombre')
+            q.telefono = request.POST.get('telefono')
+            q.correo = request.POST.get('correo')
+            q.save()
+            messages.success(request, "Proveedor actualizado con éxito!!!")
+        except Exception as e:
+            messages.error(request, f"Error : {e}")
+
+        return redirect ('inventario:proveedores')
+        
+    else:
+        q = Proveedor.objects.get(pk = id)
+        contexto = {
+            "datos" : q
+        }
+        return render(request, "Proveedor/formulario_proveedor.html", contexto)
