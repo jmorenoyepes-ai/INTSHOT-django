@@ -178,7 +178,7 @@ def actualizar_usuario(request, id):
 
 
 # CRUD de Productos
-@autorizacion(["Empleado"])
+@autorizacion(["Empleado","Administrador"])
 def ver_productos(request):
     # consulta: traer todos los productos
     t = Producto.objects.all()
@@ -187,7 +187,7 @@ def ver_productos(request):
     }
     return render(request, "Inventarios/productos.html", contexto)
 
-@autorizacion(["Empleado"])
+@autorizacion(["Empleado","Administrador"])
 def eliminar_producto(request, id):
     # a = SELECT * FROM Producto where id=id
     # del a
@@ -204,7 +204,7 @@ def eliminar_producto(request, id):
     
     return redirect("inventario:productos")
 
-@autorizacion(["Empleado"])
+@autorizacion(["Empleado","Administrador"])
 def crear_producto(request):
     if request.method == "POST":
         # proceso datos
@@ -229,7 +229,7 @@ def crear_producto(request):
         # mostrar formulario
         return render(request, "Inventarios/formulario_producto.html")
 
-@autorizacion(["Empleado"])
+@autorizacion(["Empleado","Administrador"])
 def actualizar_producto(request, id):
     
     if request.method == "POST":
