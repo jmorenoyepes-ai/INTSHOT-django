@@ -46,7 +46,7 @@ def login(request):
         if request.session.get("logueado", False):
             return redirect("inventario:inicio")
         else:
-            return render(request, "login.html")
+            return render(request, "Login/login.html")
         
 def registrarse(request):
     if request.method == "POST":
@@ -73,7 +73,7 @@ def registrarse(request):
 
     else:
         # mostrar formulario
-        return render(request, "registro_formulario.html")
+        return render(request, "Login/registro_formulario.html")
 
 @autorizacion()
 def logout(request):
