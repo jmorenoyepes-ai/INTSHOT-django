@@ -15,6 +15,7 @@
                 <th>Fecha</th>
                 <th>Estado</th>
                 <th>Total</th>
+                <th>Pago</th>
                 <th>Acciones</th>
             </tr>
         </thead>
@@ -35,50 +36,62 @@
                         <span class="badge bg-primary">{{ i.estado }}</span>
                     {% elif i.estado == "Entregado" %}
                         <span class="badge bg-success">{{ i.estado }}</span>
+                    {% elif i.estado == "Cancelado" %}
+                        <span class="badge bg-secondary">{{ i.estado }}</span>
                     {% endif %}
                 </td>
                 <td>${{ i.total }}</td>
+                <td>
+                    {% if i.pagado %}
+                        <span class="badge bg-success">Pagado</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Sin pagar</span>
+                    {% endif %}
+                </td>
                 <td class="d-flex gap-1 flex-wrap">
                     <a href="{% url 'inventario:detalle_pedido' i.id %}" class="btn btn-sm btn-outline-secondary">Ver Detalle</a>
 
-                    {% if request.session.logueado.rol == "Cliente" and i.estado == "Pendiente" %}
-                        <!-- Modal pago -->
-                        <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalPago{{ i.id }}">
-                            Pagar
-                        </button>
+                    {% if request.session.logueado.rol == "Cliente" %}
+                        {% if not i.pagado and i.estado == "Pendiente" %}
+                            <!-- Modal pago -->
+                            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalPago{{ i.id }}">
+                                Pagar
+                            </button>
 
-                        <!-- Modal Bootstrap para registrar pago -->
-                        <div class="modal fade" id="modalPago{{ i.id }}" tabindex="-1">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Registrar Pago - Pedido #{{ i.id }}</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            <div class="modal fade" id="modalPago{{ i.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Registrar Pago - Pedido #{{ i.id }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="{% url 'inventario:registrar_pago' i.id %}" method="post">
+                                            {% csrf_token %}
+                                            <div class="modal-body">
+                                                <p><strong>Total a pagar: ${{ i.total }}</strong></p>
+                                                <label class="form-label">Método de pago</label>
+                                                <select name="metodo" class="form-select" required>
+                                                    <option value="">Seleccione...</option>
+                                                    <option value="Efectivo">Efectivo</option>
+                                                    <option value="Tarjeta">Tarjeta</option>
+                                                    <option value="Transferencia">Transferencia</option>
+                                                </select>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-success">Confirmar Pago</button>
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            </div>
+                                        </form>
                                     </div>
-                                    <form action="{% url 'inventario:registrar_pago' i.id %}" method="post">
-                                        {% csrf_token %}
-                                        <div class="modal-body">
-                                            <p><strong>Total a pagar: ${{ i.total }}</strong></p>
-                                            <label class="form-label">Método de pago</label>
-                                            <select name="metodo" class="form-select" required>
-                                                <option value="">Seleccione...</option>
-                                                <option value="Efectivo">Efectivo</option>
-                                                <option value="Tarjeta">Tarjeta</option>
-                                                <option value="Transferencia">Transferencia</option>
-                                            </select>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="submit" class="btn btn-success">Confirmar Pago</button>
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                        </div>
-                                    </form>
                                 </div>
                             </div>
-                        </div>
+                        {% elif i.pagado %}
+                            <span class="text-muted small">Ya pagado</span>
+                        {% endif %}
                     {% endif %}
 
                     {% if request.session.logueado.rol == "Empleado" or request.session.logueado.rol == "Administrador" %}
-                        <!-- Cambiar estado -->
+                        {% if i.estado != "Entregado" and i.estado != "Cancelado" %}
                         <form action="{% url 'inventario:actualizar_estado_pedido' i.id %}" method="post" class="d-flex gap-1">
                             {% csrf_token %}
                             <select name="estado" class="form-select form-select-sm" style="width:130px;">
@@ -86,15 +99,17 @@
                                 <option value="En proceso" {% if i.estado == 'En proceso' %}selected{% endif %}>En proceso</option>
                                 <option value="Enviado" {% if i.estado == 'Enviado' %}selected{% endif %}>Enviado</option>
                                 <option value="Entregado" {% if i.estado == 'Entregado' %}selected{% endif %}>Entregado</option>
+                                <option value="Cancelado">Cancelado</option>
                             </select>
                             <button type="submit" class="btn btn-sm btn-primary">✓</button>
                         </form>
+                        {% endif %}
                     {% endif %}
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="text-center text-muted">No hay pedidos registrados.</td>
+                <td colspan="7" class="text-center text-muted">No hay pedidos registrados.</td>
             </tr>
             {% endfor %}
         </tbody>

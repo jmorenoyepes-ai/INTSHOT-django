@@ -59,4 +59,7 @@ urlpatterns = [
 
     # módulo movimientos inventario
     path('movimientos/', views.ver_movimientos, name="movimientos"),
+
+    # módulo contabilidad
+    path('contabilidad/', views.ver_contabilidad, name="contabilidad"),
 ]

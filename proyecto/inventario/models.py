@@ -66,12 +66,16 @@ class Pedido(models.Model):
         ("En proceso", "EN PROCESO"),
         ("Enviado", "ENVIADO"),
         ("Entregado", "ENTREGADO"),
+        ("Cancelado", "CANCELADO"),
     )
     estado = models.CharField(max_length=20,choices=ESTADOS,default="Pendiente")
 
     def total(self):
         detalles = DetallePedido.objects.filter(pedido=self)
         return sum(d.subtotal() for d in detalles)
+
+    def pagado(self):
+        return Pago.objects.filter(pedido=self).exists()
 
     def __str__(self):
         return f"Pedido #{self.id}"
@@ -109,9 +113,10 @@ class Compra(models.Model):
     ESTADOS = (
     ("Pendiente", "PENDIENTE"),
     ("Recibida", "RECIBIDA"),
+    ("Recibida parcialmente", "RECIBIDA PARCIALMENTE"),
     )
 
-    estado = models.CharField(max_length=20,choices=ESTADOS,default="Pendiente")
+    estado = models.CharField(max_length=30,choices=ESTADOS,default="Pendiente")
 
     def total(self):
         detalles = DetalleCompra.objects.filter(compra=self)
@@ -124,6 +129,7 @@ class DetalleCompra(models.Model):
     compra = models.ForeignKey(Compra,on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto,on_delete=models.CASCADE)
     cantidad = models.IntegerField()
+    cantidad_recibida = models.IntegerField(default=0)
     precio_unitario = models.DecimalField(max_digits=10,decimal_places=2)
 
     def subtotal(self):
@@ -145,3 +151,24 @@ class MovimientoInventario(models.Model):
 
     def __str__(self):
         return f"{self.tipo} - {self.producto.nombre}"
+
+
+# ─────────────────────────────────────────────
+# Contabilidad
+# ─────────────────────────────────────────────
+
+class MovimientoContable(models.Model):
+    fecha = models.DateTimeField(auto_now_add=True)
+    TIPOS = (
+        ("Ingreso", "INGRESO"),
+        ("Egreso", "EGRESO"),
+    )
+    tipo = models.CharField(max_length=10, choices=TIPOS)
+    valor = models.DecimalField(max_digits=12, decimal_places=2)
+    descripcion = models.CharField(max_length=300)
+    # Relaciones opcionales para trazabilidad
+    pedido = models.ForeignKey(Pedido, on_delete=models.SET_NULL, null=True, blank=True)
+    compra = models.ForeignKey(Compra, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.tipo} ${self.valor} - {self.descripcion}"

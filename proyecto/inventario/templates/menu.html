@@ -58,6 +58,12 @@
                     </li>
                 {% endif %}
 
+                {% if request.session.logueado.rol == "Administrador" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventario:contabilidad' %}">Contabilidad</a>
+                    </li>
+                {% endif %}
+
                 {% if request.session.logueado.rol == "Cliente" %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'inventario:catalogo' %}">Catálogo</a>

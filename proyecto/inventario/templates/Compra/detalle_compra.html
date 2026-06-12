@@ -9,8 +9,10 @@
     <p><strong>Estado:</strong>
         {% if compra.estado == "Pendiente" %}
             <span class="badge bg-warning text-dark">{{ compra.estado }}</span>
-        {% else %}
+        {% elif compra.estado == "Recibida" %}
             <span class="badge bg-success">{{ compra.estado }}</span>
+        {% else %}
+            <span class="badge bg-info text-dark">{{ compra.estado }}</span>
         {% endif %}
     </p>
 
@@ -24,7 +26,10 @@
                 <th>#</th>
                 <th>Producto</th>
                 <th>Categoría</th>
-                <th>Cantidad</th>
+                <th>Cantidad Pedida</th>
+                {% if compra.estado != "Pendiente" %}
+                <th>Cantidad Recibida</th>
+                {% endif %}
                 <th>Precio unitario</th>
                 <th>Subtotal</th>
                 {% if compra.estado == "Pendiente" %}
@@ -39,6 +44,15 @@
                 <td>{{ i.producto.nombre }}</td>
                 <td>{{ i.producto.categoria }}</td>
                 <td>{{ i.cantidad }}</td>
+                {% if compra.estado != "Pendiente" %}
+                <td>
+                    {% if i.cantidad_recibida < i.cantidad %}
+                        <span class="text-danger fw-bold">{{ i.cantidad_recibida }}</span>
+                    {% else %}
+                        {{ i.cantidad_recibida }}
+                    {% endif %}
+                </td>
+                {% endif %}
                 <td>${{ i.precio_unitario }}</td>
                 <td>${{ i.subtotal }}</td>
                 {% if compra.estado == "Pendiente" %}
@@ -52,13 +66,13 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="text-center text-muted">No hay productos en esta compra.</td>
+                <td colspan="8" class="text-center text-muted">No hay productos en esta compra.</td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="5" class="text-end fw-bold">Total:</td>
+                <td colspan="{% if compra.estado == 'Pendiente' %}5{% else %}6{% endif %}" class="text-end fw-bold">Total:</td>
                 <td class="fw-bold">${{ compra.total }}</td>
                 {% if compra.estado == "Pendiente" %}<td></td>{% endif %}
             </tr>
@@ -68,10 +82,7 @@
     <div class="d-flex gap-2">
         <a href="{% url 'inventario:compras' %}" class="btn btn-outline-secondary">Volver a Compras</a>
         {% if compra.estado == "Pendiente" %}
-            <button
-                onclick="modal_eliminar('Compra', '¿Confirmar recepción de la compra #{{ compra.id }}?', `{% url 'inventario:recibir_compra' compra.id %}`);"
-                type="button" class="btn btn-success" data-bs-toggle="modal"
-                data-bs-target="#confirmacion">Recibir Compra</button>
+            <a href="{% url 'inventario:recibir_compra' compra.id %}" class="btn btn-success">Recibir Compra</a>
         {% endif %}
     </div>
 </div>

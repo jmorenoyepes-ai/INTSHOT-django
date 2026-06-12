@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib import messages
 from django.db import IntegrityError
+from django.db.models import Sum
 from .models import *
 from .utilidades import *
 
@@ -410,34 +411,26 @@ def crear_pedido(request):
             messages.warning(request, "El carrito está vacío")
             return redirect("inventario:carrito")
 
+        # Verificar stock antes de crear el pedido
+        for item in carrito:
+            if item.cantidad > item.producto.stock:
+                messages.warning(request, f"No hay stock suficiente de {item.producto.nombre}")
+                return redirect("inventario:carrito")
+
         pedido = Pedido(usuario=usuario)
         pedido.save()
 
         for item in carrito:
-            if item.cantidad > item.producto.stock:
-                messages.warning(request, f"No hay stock suficiente de {item.producto.nombre}")
-                pedido.delete()
-                return redirect("inventario:carrito")
-
             DetallePedido.objects.create(
                 pedido=pedido,
                 producto=item.producto,
                 cantidad=item.cantidad,
                 precio_unitario=item.producto.precio
             )
-
-            item.producto.stock -= item.cantidad
-            item.producto.save()
-
-            MovimientoInventario.objects.create(
-                producto=item.producto,
-                cantidad=item.cantidad,
-                tipo="Salida",
-                descripcion=f"Pedido #{pedido.id}"
-            )
+            # El stock NO se descuenta aquí, se descuenta al pagar
 
         carrito.delete()
-        messages.success(request, "Pedido generado correctamente")
+        messages.success(request, "Pedido generado correctamente. Recuerda realizar el pago para confirmarlo.")
 
     except Exception as e:
         messages.error(request, f"Error: {e}")
@@ -448,7 +441,30 @@ def crear_pedido(request):
 def actualizar_estado_pedido(request, id):
     try:
         q = Pedido.objects.get(pk=id)
-        q.estado = request.POST.get("estado")
+        nuevo_estado = request.POST.get("estado")
+
+        # Si se cancela un pedido que ya fue pagado, devolver stock
+        if nuevo_estado == "Cancelado" and q.estado != "Cancelado":
+            if q.pagado():
+                detalles = DetallePedido.objects.filter(pedido=q)
+                for d in detalles:
+                    d.producto.stock += d.cantidad
+                    d.producto.save()
+                    MovimientoInventario.objects.create(
+                        producto=d.producto,
+                        cantidad=d.cantidad,
+                        tipo="Entrada",
+                        descripcion=f"Cancelación Pedido #{q.id}"
+                    )
+                # Registrar egreso contable por devolución
+                MovimientoContable.objects.create(
+                    tipo="Egreso",
+                    valor=q.total(),
+                    descripcion=f"Devolución por cancelación Pedido #{q.id}",
+                    pedido=q
+                )
+
+        q.estado = nuevo_estado
         q.save()
         messages.success(request, "Estado actualizado")
     except Exception as e:
@@ -483,11 +499,48 @@ def ver_pagos(request):
 def registrar_pago(request, id):
     try:
         pedido = Pedido.objects.get(pk=id)
+
+        # Evitar doble pago
+        if pedido.pagado():
+            messages.warning(request, "Este pedido ya tiene un pago registrado.")
+            return redirect("inventario:pedidos")
+
+        # Solo se puede pagar si el pedido está Pendiente o En proceso
+        if pedido.estado not in ["Pendiente", "En proceso"]:
+            messages.warning(request, f"No se puede pagar un pedido en estado '{pedido.estado}'.")
+            return redirect("inventario:pedidos")
+
         Pago.objects.create(
             pedido=pedido,
             valor=pedido.total(),
             metodo=request.POST.get("metodo")
         )
+
+        # Al confirmar el pago, descontar el inventario
+        detalles = DetallePedido.objects.filter(pedido=pedido)
+        for d in detalles:
+            if d.cantidad > d.producto.stock:
+                messages.warning(request, f"No hay stock suficiente de {d.producto.nombre}. Contacta con nosotros.")
+                # Se registra el pago de todas formas, el admin debe resolver el faltante
+            d.producto.stock -= d.cantidad
+            if d.producto.stock < 0:
+                d.producto.stock = 0
+            d.producto.save()
+            MovimientoInventario.objects.create(
+                producto=d.producto,
+                cantidad=d.cantidad,
+                tipo="Salida",
+                descripcion=f"Pago Pedido #{pedido.id}"
+            )
+
+        # Registrar ingreso contable
+        MovimientoContable.objects.create(
+            tipo="Ingreso",
+            valor=pedido.total(),
+            descripcion=f"Pago Pedido #{pedido.id} - {request.POST.get('metodo')}",
+            pedido=pedido
+        )
+
         messages.success(request, "Pago registrado correctamente")
     except Exception as e:
         messages.error(request, f"Error: {e}")
@@ -579,35 +632,74 @@ def eliminar_detalle_compra(request, id):
 
 @autorizacion(["Administrador", "Empleado"])
 def recibir_compra(request, id):
-    try:
-        compra = Compra.objects.get(pk=id)
+    """
+    Permite confirmar la recepción de una compra, con la posibilidad de indicar
+    cuántas unidades llegaron realmente de cada producto (recepción parcial).
+    """
+    compra = Compra.objects.get(pk=id)
 
-        if compra.estado == "Recibida":
-            messages.warning(request, "La compra ya fue recibida")
-            return redirect("inventario:compras")
+    if compra.estado != "Pendiente":
+        messages.warning(request, "La compra ya fue recibida")
+        return redirect("inventario:compras")
 
+    if request.method == "POST":
+        try:
+            detalles = DetalleCompra.objects.filter(compra=compra)
+            es_completa = True
+            total_egreso = 0
+
+            for d in detalles:
+                campo = f"recibido_{d.id}"
+                cantidad_recibida = int(request.POST.get(campo, 0))
+                cantidad_recibida = max(0, min(cantidad_recibida, d.cantidad))  # entre 0 y lo pedido
+
+                d.cantidad_recibida = cantidad_recibida
+                d.save()
+
+                if cantidad_recibida < d.cantidad:
+                    es_completa = False
+
+                if cantidad_recibida > 0:
+                    producto = d.producto
+                    producto.stock += cantidad_recibida
+                    producto.save()
+
+                    MovimientoInventario.objects.create(
+                        producto=producto,
+                        cantidad=cantidad_recibida,
+                        tipo="Entrada",
+                        descripcion=f"Compra #{compra.id} - recibido {cantidad_recibida}/{d.cantidad}"
+                    )
+
+                    total_egreso += cantidad_recibida * d.precio_unitario
+
+            compra.estado = "Recibida" if es_completa else "Recibida parcialmente"
+            compra.save()
+
+            # Registrar egreso contable
+            if total_egreso > 0:
+                MovimientoContable.objects.create(
+                    tipo="Egreso",
+                    valor=total_egreso,
+                    descripcion=f"Compra #{compra.id} a {compra.proveedor.nombre} - {compra.estado}",
+                    compra=compra
+                )
+
+            messages.success(request, f"Compra recibida: {compra.estado}")
+
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+
+        return redirect("inventario:compras")
+
+    else:
+        # GET: mostrar formulario de confirmación de recepción
         detalles = DetalleCompra.objects.filter(compra=compra)
-
-        for d in detalles:
-            producto = d.producto
-            producto.stock += d.cantidad
-            producto.save()
-
-            MovimientoInventario.objects.create(
-                producto=producto,
-                cantidad=d.cantidad,
-                tipo="Entrada",
-                descripcion=f"Compra #{compra.id}"
-            )
-
-        compra.estado = "Recibida"
-        compra.save()
-        messages.success(request, "Compra recibida correctamente")
-
-    except Exception as e:
-        messages.error(request, f"Error: {e}")
-
-    return redirect("inventario:compras")
+        contexto = {
+            "compra": compra,
+            "datos": detalles
+        }
+        return render(request, "Compra/recibir_compra.html", contexto)
 
 
 # ─────────────────────────────────────────────
@@ -621,3 +713,24 @@ def ver_movimientos(request):
         "datos": t
     }
     return render(request, "Inventarios/movimientos.html", contexto)
+
+
+# ─────────────────────────────────────────────
+# Contabilidad
+# ─────────────────────────────────────────────
+
+@autorizacion(["Administrador"])
+def ver_contabilidad(request):
+    movimientos = MovimientoContable.objects.all().order_by("-fecha")
+
+    total_ingresos = movimientos.filter(tipo="Ingreso").aggregate(total=Sum("valor"))["total"] or 0
+    total_egresos  = movimientos.filter(tipo="Egreso").aggregate(total=Sum("valor"))["total"] or 0
+    balance        = total_ingresos - total_egresos
+
+    contexto = {
+        "datos": movimientos,
+        "total_ingresos": total_ingresos,
+        "total_egresos": total_egresos,
+        "balance": balance,
+    }
+    return render(request, "Contabilidad/contabilidad.html", contexto)
