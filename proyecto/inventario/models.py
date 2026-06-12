@@ -36,7 +36,7 @@ class Producto(models.Model):
 
 
     def __str__(self):
-        return f"{self.id} - {self.nombre} {self.talla} - Rol: {self.color}"
+        return f"{self.id} - {self.nombre} {self.talla} - Color: {self.color}"
     
 class Proveedor(models.Model):
     nombre = models.CharField(max_length=200)
