@@ -73,9 +73,7 @@ def base(request):
     return render(request, "base.html")
 
 
-# ─────────────────────────────────────────────
 # CRUD de usuarios
-# ─────────────────────────────────────────────
 
 @autorizacion(["Administrador"])
 def ver_usuarios(request):
@@ -151,9 +149,7 @@ def actualizar_usuario(request, id):
         return render(request, "Usuario/formulario_usuario.html", contexto)
 
 
-# ─────────────────────────────────────────────
 # CRUD de Productos
-# ─────────────────────────────────────────────
 
 @autorizacion(["Empleado","Administrador"])
 def ver_productos(request):
@@ -228,9 +224,7 @@ def actualizar_producto(request, id):
         return render(request, "Inventarios/formulario_producto.html", contexto)
 
 
-# ─────────────────────────────────────────────
 # CRUD de Proveedores
-# ─────────────────────────────────────────────
 
 @autorizacion(["Administrador", "Empleado"])
 def ver_proveedores(request):
@@ -298,23 +292,18 @@ def actualizar_proveedor(request, id):
         return render(request, "Proveedor/formulario_proveedor.html", contexto)
 
 
-# ─────────────────────────────────────────────
-# Catálogo (vista pública para clientes)
-# ─────────────────────────────────────────────
+# Catálogo 
 
 @autorizacion(["Cliente"])
 def ver_catalogo(request):
-    # Solo productos con stock disponible, excluye Insumos
-    t = Producto.objects.filter(stock__gt=0).exclude(categoria="Insumos")
+    t = Producto.objects.filter(stock__gt=0)
     contexto = {
         "datos": t
     }
     return render(request, "Catalogo/catalogo.html", contexto)
 
 
-# ─────────────────────────────────────────────
 # Carrito
-# ─────────────────────────────────────────────
 
 @autorizacion(["Cliente"])
 def ver_carrito(request):
@@ -384,9 +373,7 @@ def actualizar_carrito(request, id):
     return redirect("inventario:carrito")
 
 
-# ─────────────────────────────────────────────
 # Pedidos
-# ─────────────────────────────────────────────
 
 @autorizacion()
 def ver_pedidos(request):
@@ -427,7 +414,6 @@ def crear_pedido(request):
                 cantidad=item.cantidad,
                 precio_unitario=item.producto.precio
             )
-            # El stock NO se descuenta aquí, se descuenta al pagar
 
         carrito.delete()
         messages.success(request, "Pedido generado correctamente. Recuerda realizar el pago para confirmarlo.")
@@ -483,9 +469,7 @@ def ver_detalle_pedido(request, id):
     return render(request, "Pedido/detalle_pedido.html", contexto)
 
 
-# ─────────────────────────────────────────────
 # Pagos
-# ─────────────────────────────────────────────
 
 @autorizacion(["Administrador", "Empleado"])
 def ver_pagos(request):
@@ -521,7 +505,6 @@ def registrar_pago(request, id):
         for d in detalles:
             if d.cantidad > d.producto.stock:
                 messages.warning(request, f"No hay stock suficiente de {d.producto.nombre}. Contacta con nosotros.")
-                # Se registra el pago de todas formas, el admin debe resolver el faltante
             d.producto.stock -= d.cantidad
             if d.producto.stock < 0:
                 d.producto.stock = 0
@@ -548,9 +531,7 @@ def registrar_pago(request, id):
     return redirect("inventario:pedidos")
 
 
-# ─────────────────────────────────────────────
 # Compras a proveedores
-# ─────────────────────────────────────────────
 
 @autorizacion(["Administrador", "Empleado"])
 def ver_compras(request):
@@ -632,10 +613,7 @@ def eliminar_detalle_compra(request, id):
 
 @autorizacion(["Administrador", "Empleado"])
 def recibir_compra(request, id):
-    """
-    Permite confirmar la recepción de una compra, con la posibilidad de indicar
-    cuántas unidades llegaron realmente de cada producto (recepción parcial).
-    """
+
     compra = Compra.objects.get(pk=id)
 
     if compra.estado != "Pendiente":
@@ -651,7 +629,7 @@ def recibir_compra(request, id):
             for d in detalles:
                 campo = f"recibido_{d.id}"
                 cantidad_recibida = int(request.POST.get(campo, 0))
-                cantidad_recibida = max(0, min(cantidad_recibida, d.cantidad))  # entre 0 y lo pedido
+                cantidad_recibida = max(0, min(cantidad_recibida, d.cantidad))  
 
                 d.cantidad_recibida = cantidad_recibida
                 d.save()
@@ -693,7 +671,6 @@ def recibir_compra(request, id):
         return redirect("inventario:compras")
 
     else:
-        # GET: mostrar formulario de confirmación de recepción
         detalles = DetalleCompra.objects.filter(compra=compra)
         contexto = {
             "compra": compra,
@@ -701,10 +678,7 @@ def recibir_compra(request, id):
         }
         return render(request, "Compra/recibir_compra.html", contexto)
 
-
-# ─────────────────────────────────────────────
 # Movimientos de inventario
-# ─────────────────────────────────────────────
 
 @autorizacion(["Administrador", "Empleado"])
 def ver_movimientos(request):
@@ -714,10 +688,7 @@ def ver_movimientos(request):
     }
     return render(request, "Inventarios/movimientos.html", contexto)
 
-
-# ─────────────────────────────────────────────
 # Contabilidad
-# ─────────────────────────────────────────────
 
 @autorizacion(["Administrador"])
 def ver_contabilidad(request):

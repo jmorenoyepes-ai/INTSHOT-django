@@ -153,10 +153,6 @@ class MovimientoInventario(models.Model):
         return f"{self.tipo} - {self.producto.nombre}"
 
 
-# ─────────────────────────────────────────────
-# Contabilidad
-# ─────────────────────────────────────────────
-
 class MovimientoContable(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     TIPOS = (
@@ -166,7 +162,7 @@ class MovimientoContable(models.Model):
     tipo = models.CharField(max_length=10, choices=TIPOS)
     valor = models.DecimalField(max_digits=12, decimal_places=2)
     descripcion = models.CharField(max_length=300)
-    # Relaciones opcionales para trazabilidad
+    
     pedido = models.ForeignKey(Pedido, on_delete=models.SET_NULL, null=True, blank=True)
     compra = models.ForeignKey(Compra, on_delete=models.SET_NULL, null=True, blank=True)
 
