@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg">
+    <h1 class="display-4" style="text-align: center;">Catálogo de Productos</h1>
+    <br>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for i in datos %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">{{ i.nombre }}</h5>
+                    <p class="card-text">{{ i.descripcion }}</p>
+                    <ul class="list-unstyled">
+                        <li><strong>Color:</strong> {{ i.color }}</li>
+                        <li><strong>Talla:</strong> {{ i.talla }}</li>
+                        <li><strong>Categoría:</strong> {{ i.categoria }}</li>
+                        <li><strong>Stock:</strong> {{ i.stock }} unidades</li>
+                    </ul>
+                    <p class="fs-5 text-success"><strong>${{ i.precio }}</strong></p>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'inventario:agregar_carrito' i.id %}" class="btn btn-primary w-100">
+                        🛒 Agregar al carrito
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-center text-muted">No hay productos disponibles en este momento.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

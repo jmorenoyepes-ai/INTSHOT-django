@@ -10,10 +10,7 @@ urlpatterns = [
     path('registrarse/', views.registrarse, name="registrarse"),
     
     path('inicio/', views.inicio, name="inicio"),
-
     path('base/', views.base, name="base"),
-    # path('productos/', views.productos, name="productos"),
-    # path('insumos/', views.insumos, name="insumos"),
 
     # módulo usuarios
     path('usuarios/', views.ver_usuarios, name="usuarios"),
@@ -33,4 +30,33 @@ urlpatterns = [
     path('crear_proveedor/', views.crear_proveedor, name="crear_proveedor"),
     path('actualizar_proveedor/<int:id>/', views.actualizar_proveedor, name="actualizar_proveedor"),
 
+    # módulo catálogo (cliente)
+    path('catalogo/', views.ver_catalogo, name="catalogo"),
+
+    # módulo carrito
+    path('carrito/', views.ver_carrito, name="carrito"),
+    path('agregar_carrito/<int:id>/', views.agregar_carrito, name="agregar_carrito"),
+    path('eliminar_carrito/<int:id>/', views.eliminar_carrito, name="eliminar_carrito"),
+    path('actualizar_carrito/<int:id>/', views.actualizar_carrito, name="actualizar_carrito"),
+
+    # módulo pedidos
+    path('pedidos/', views.ver_pedidos, name="pedidos"),
+    path('crear_pedido/', views.crear_pedido, name="crear_pedido"),
+    path('actualizar_estado_pedido/<int:id>/', views.actualizar_estado_pedido, name="actualizar_estado_pedido"),
+    path('detalle_pedido/<int:id>/', views.ver_detalle_pedido, name="detalle_pedido"),
+
+    # módulo pagos
+    path('pagos/', views.ver_pagos, name="pagos"),
+    path('registrar_pago/<int:id>/', views.registrar_pago, name="registrar_pago"),
+
+    # módulo compras
+    path('compras/', views.ver_compras, name="compras"),
+    path('crear_compra/', views.crear_compra, name="crear_compra"),
+    path('detalle_compra/<int:id>/', views.ver_detalle_compra, name="detalle_compra"),
+    path('agregar_detalle_compra/<int:id>/', views.agregar_detalle_compra, name="agregar_detalle_compra"),
+    path('eliminar_detalle_compra/<int:id>/', views.eliminar_detalle_compra, name="eliminar_detalle_compra"),
+    path('recibir_compra/<int:id>/', views.recibir_compra, name="recibir_compra"),
+
+    # módulo movimientos inventario
+    path('movimientos/', views.ver_movimientos, name="movimientos"),
 ]

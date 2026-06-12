@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg">
+    <h1 class="display-4" style="text-align: center;">Nueva Compra</h1>
+    <form action="" method="post">
+        {% csrf_token %}
+        <div class="row align-items-start">
+            <div class="col">
+                <label class="form-label">Proveedor</label>
+                <select name="proveedor" class="form-select" required>
+                    <option value="">Seleccione el proveedor</option>
+                    {% for p in proveedores %}
+                        <option value="{{ p.id }}">{{ p.nombre }} - {{ p.correo }}</option>
+                    {% endfor %}
+                </select>
+                <br>
+            </div>
+            <div class="zona_botones">
+                <div class="col-4 d-grid mx-auto">
+                    <button type="submit" class="btn btn-success">Registrar Compra</button>
+                </div>
+            </div>
+        </div>
+    </form>
+    <br>
+    <a href="{% url 'inventario:compras' %}" class="btn btn-outline-secondary">Volver</a>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg">
+    <h1 class="display-4" style="text-align: center;">Detalle Pedido #{{ pedido.id }}</h1>
+    <br>
+    <p><strong>Cliente:</strong> {{ pedido.usuario.nombre }} {{ pedido.usuario.apellido }}</p>
+    <p><strong>Fecha:</strong> {{ pedido.fecha|date:"d/m/Y H:i" }}</p>
+    <p><strong>Estado:</strong>
+        {% if pedido.estado == "Pendiente" %}
+            <span class="badge bg-warning text-dark">{{ pedido.estado }}</span>
+        {% elif pedido.estado == "En proceso" %}
+            <span class="badge bg-info text-dark">{{ pedido.estado }}</span>
+        {% elif pedido.estado == "Enviado" %}
+            <span class="badge bg-primary">{{ pedido.estado }}</span>
+        {% elif pedido.estado == "Entregado" %}
+            <span class="badge bg-success">{{ pedido.estado }}</span>
+        {% endif %}
+    </p>
+
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Producto</th>
+                <th>Color</th>
+                <th>Talla</th>
+                <th>Cantidad</th>
+                <th>Precio unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            {% for i in datos %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ i.producto.nombre }}</td>
+                <td>{{ i.producto.color }}</td>
+                <td>{{ i.producto.talla }}</td>
+                <td>{{ i.cantidad }}</td>
+                <td>${{ i.precio_unitario }}</td>
+                <td>${{ i.subtotal }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="6" class="text-end fw-bold">Total:</td>
+                <td class="fw-bold">${{ pedido.total }}</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <a href="{% url 'inventario:pedidos' %}" class="btn btn-outline-secondary">Volver a Pedidos</a>
+</div>
+{% endblock %}

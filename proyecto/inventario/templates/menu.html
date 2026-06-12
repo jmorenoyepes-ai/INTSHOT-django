@@ -15,15 +15,14 @@
                 <li class="nav-item">
                     <a class="nav-link active" aria-current="page" href="{% url 'inventario:inicio' %}">Inicio</a>
                 </li>
-                {% if request.session.logueado.rol == "Administrador" %}
 
+                {% if request.session.logueado.rol == "Administrador" %}
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'inventario:usuarios' %}">Usuarios</a>
                     </li>
                 {% endif %}
 
                 {% if request.session.logueado.rol == "Administrador" or request.session.logueado.rol == "Empleado" %}
-
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                             aria-expanded="false">
@@ -31,25 +30,53 @@
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{% url 'inventario:productos' %}">Productos</a></li>
+                            <li><a class="dropdown-item" href="{% url 'inventario:movimientos' %}">Movimientos</a></li>
                         </ul>
                     </li>
-                {% endif %}
-
-                {% if request.session.logueado.rol == "Administrador" or request.session.logueado.rol == "Empleado" %}
 
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'inventario:proveedores' %}">Proveedores</a>
                     </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Compras
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'inventario:compras' %}">Ver Compras</a></li>
+                            <li><a class="dropdown-item" href="{% url 'inventario:crear_compra' %}">Nueva Compra</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventario:pedidos' %}">Pedidos</a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventario:pagos' %}">Pagos</a>
+                    </li>
+                {% endif %}
+
+                {% if request.session.logueado.rol == "Cliente" %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventario:catalogo' %}">Catálogo</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventario:carrito' %}">🛒 Carrito</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventario:pedidos' %}">Mis Pedidos</a>
+                    </li>
                 {% endif %}
 
                 <li class="nav-item">
-                    <a class="nav-link" aria-current="page" href="{% url 'inventario:logout' %}">Cerrar sesión</a>
+                    <a class="nav-link" href="{% url 'inventario:logout' %}">Cerrar sesión</a>
                 </li>
             </ul>
-            <form class="d-flex" role="search">
-                <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" />
-                <button class="btn btn-outline-light" type="submit">Buscar</button>
-            </form>
+            <span class="navbar-text text-white me-3">
+                {{ request.session.logueado.nombre }} | {{ request.session.logueado.rol }}
+            </span>
         </div>
     </div>
 </nav>

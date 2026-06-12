@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg">
+    <h1 class="display-4" style="text-align: center;">Mi Carrito</h1>
+    <br>
+    {% if datos %}
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Color</th>
+                <th>Talla</th>
+                <th>Precio unitario</th>
+                <th>Cantidad</th>
+                <th>Subtotal</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            {% for i in datos %}
+            <tr>
+                <td>{{ i.producto.nombre }}</td>
+                <td>{{ i.producto.color }}</td>
+                <td>{{ i.producto.talla }}</td>
+                <td>${{ i.producto.precio }}</td>
+                <td>
+                    <form action="{% url 'inventario:actualizar_carrito' i.id %}" method="post" class="d-flex gap-1">
+                        {% csrf_token %}
+                        <input type="number" name="cantidad" value="{{ i.cantidad }}" min="1" max="{{ i.producto.stock }}" class="form-control form-control-sm" style="width:70px;">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">✓</button>
+                    </form>
+                </td>
+                <td>${{ i.subtotal }}</td>
+                <td>
+                    <button
+                        onclick="modal_eliminar('Carrito', 'Está seguro de eliminar <strong>{{ i.producto.nombre }}</strong> del carrito?', `{% url 'inventario:eliminar_carrito' i.id %}`);"
+                        type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#confirmacion">Eliminar</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="5" class="text-end fw-bold">Total:</td>
+                <td class="fw-bold">${{ total }}</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="d-flex justify-content-end gap-2 mt-3">
+        <a href="{% url 'inventario:catalogo' %}" class="btn btn-outline-secondary">Seguir comprando</a>
+        <a href="{% url 'inventario:crear_pedido' %}" class="btn btn-success">Confirmar Pedido</a>
+    </div>
+
+    {% else %}
+    <div class="text-center mt-5">
+        <p class="text-muted fs-5">Tu carrito está vacío.</p>
+        <a href="{% url 'inventario:catalogo' %}" class="btn btn-primary">Ver catálogo</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
