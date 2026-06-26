@@ -30,7 +30,7 @@ urlpatterns = [
     path('crear_proveedor/', views.crear_proveedor, name="crear_proveedor"),
     path('actualizar_proveedor/<int:id>/', views.actualizar_proveedor, name="actualizar_proveedor"),
 
-    # módulo catálogo (cliente)
+    # módulo catálogo 
     path('catalogo/', views.ver_catalogo, name="catalogo"),
 
     # módulo carrito
