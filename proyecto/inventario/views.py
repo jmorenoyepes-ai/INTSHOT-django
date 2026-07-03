@@ -6,6 +6,9 @@ from django.db.models import Sum
 from .models import *
 from .utilidades import *
 
+def landing(request):
+    return render(request, "landing.html")
+
 def login(request):
     if request.method == "POST":
         usuario = request.POST.get("user")
@@ -67,6 +70,7 @@ def logout(request):
 @autorizacion()
 def inicio(request):
     return render(request, "index.html")
+
 
 @autorizacion()
 def base(request):

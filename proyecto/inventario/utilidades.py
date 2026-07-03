@@ -18,7 +18,7 @@ def autorizacion(roles=[]):
                     return redirect("inventario:inicio")
                 return func(request, *args, **kwargs)
             else:
-                print("Usuario no logueado.. redirigir a login")
+                print("Usuario no logueado.. redirigir a landing")
                 return redirect("inventario:login")
         return envoltorio_func
     return verificar_autenticacion
