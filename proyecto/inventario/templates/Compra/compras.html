@@ -4,8 +4,37 @@
 {% block cuerpo %}
 <div class="container-lg">
     <h1 class="display-4" style="text-align: center;">Compras a Proveedores</h1>
-    <a class="btn btn-success" href="{% url 'inventario:crear_compra' %}">Nueva Compra</a>
-    <br><br>
+    <a class="btn btn-success mb-3" href="{% url 'inventario:crear_compra' %}">Nueva Compra</a>
+
+    <!-- Filtros -->
+    <form method="get" class="row g-2 mb-3 align-items-end">
+        <div class="col-md-3">
+            <input type="text" name="buscar" class="form-control" placeholder="Buscar proveedor..." value="{{ buscar }}">
+        </div>
+        <div class="col-md-3">
+            <select name="estado" class="form-select">
+                <option value="">Todos los estados</option>
+                {% for val, label in estados %}
+                <option value="{{ val }}" {% if estado == val %}selected{% endif %}>{{ val }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="fecha_desde" class="form-control" value="{{ fecha_desde }}">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="fecha_hasta" class="form-control" value="{{ fecha_hasta }}">
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary w-100">🔍</button>
+        </div>
+        {% if buscar or estado or fecha_desde or fecha_hasta %}
+        <div class="col-md-1">
+            <a href="{% url 'inventario:compras' %}" class="btn btn-outline-secondary w-100">✕</a>
+        </div>
+        {% endif %}
+    </form>
+
     <table class="table table-sm table-hover">
         <thead>
             <tr>

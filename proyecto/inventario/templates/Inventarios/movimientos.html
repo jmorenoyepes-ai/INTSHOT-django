@@ -5,6 +5,35 @@
 <div class="container-lg">
     <h1 class="display-4" style="text-align: center;">Movimientos de Inventario</h1>
     <br>
+
+    <!-- Filtros -->
+    <form method="get" class="row g-2 mb-3 align-items-end">
+        <div class="col-md-3">
+            <input type="text" name="buscar" class="form-control" placeholder="Producto o descripción..." value="{{ buscar }}">
+        </div>
+        <div class="col-md-2">
+            <select name="tipo" class="form-select">
+                <option value="">Todos los tipos</option>
+                <option value="Entrada" {% if tipo == 'Entrada' %}selected{% endif %}>Entrada</option>
+                <option value="Salida" {% if tipo == 'Salida' %}selected{% endif %}>Salida</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="fecha_desde" class="form-control" value="{{ fecha_desde }}">
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="fecha_hasta" class="form-control" value="{{ fecha_hasta }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">🔍 Filtrar</button>
+        </div>
+        {% if buscar or tipo or fecha_desde or fecha_hasta %}
+        <div class="col-md-1">
+            <a href="{% url 'inventario:movimientos' %}" class="btn btn-outline-secondary w-100">✕</a>
+        </div>
+        {% endif %}
+    </form>
+
     <table class="table table-sm table-hover">
         <thead>
             <tr>

@@ -33,7 +33,7 @@ class Producto(models.Model):
     )
 
     categoria = models.CharField(max_length=50, choices=CATEGORIAS )
-
+    imagen = models.ImageField(upload_to='productos/', null=True, blank=True)
 
     def __str__(self):
         return f"{self.id} - {self.nombre} {self.talla} - Color: {self.color}"

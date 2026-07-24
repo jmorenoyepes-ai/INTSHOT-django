@@ -9,7 +9,7 @@
     {% else %}
     <h1 class="display-4" style="text-align: center;">Crear Producto</h1>
     {% endif %}
-    <form action="" method="post">
+    <form action="" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="row align-items-start">
 
@@ -23,11 +23,24 @@
                 <input value="{{datos.descripcion}}" type="text" name="descripcion"
                     placeholder="Descripcion del producto" class="form-control">
                 <br>
-
+                <!-- Imagen del producto -->
+                <label class="form-label fw-semibold">Imagen del producto</label>
+                {% if datos.imagen %}
+                <div class="mb-2">
+                    <img src="{{ datos.imagen.url }}" alt="{{ datos.nombre }}" class="img-thumbnail" style="max-height:150px; max-width:200px;">
+                    <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" name="eliminar_imagen" id="eliminar_imagen">
+                        <label class="form-check-label text-danger" for="eliminar_imagen">Eliminar imagen actual</label>
+                    </div>
+                </div>
+                {% endif %}
+                <input type="file" name="imagen" accept="image/*" class="form-control">
+                <small class="text-muted">Si no sube imagen, se mostrará una imagen predeterminada en el catálogo.</small>
+                <br><br>
             </div>
             <div class="col">
                 <select name="categoria" class="form-select">
-                        <option value="">Seleccione la Categotia</option>
+                        <option value="">Seleccione la Categoria</option>
                         <option value="Camisetas" {% if datos.categoria == 'Camisetas' %}selected=""{% endif %}>Camisetas</option>
                         <option value="Pantalones" {% if datos.categoria == 'Pantalones' %}selected=""{% endif %}>Pantalones</option>
                         <option value="Chaquetas"  {% if datos.categoria == 'Chaquetas' %}selected=""{% endif %}>Chaquetas</option>

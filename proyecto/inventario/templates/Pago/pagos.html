@@ -5,6 +5,33 @@
 <div class="container-lg">
     <h1 class="display-4" style="text-align: center;">Pagos</h1>
     <br>
+
+    <!-- Filtros -->
+    <form method="get" class="row g-2 mb-3 align-items-end">
+        <div class="col-md-3">
+            <select name="metodo" class="form-select">
+                <option value="">Todos los métodos</option>
+                {% for val, label in metodos %}
+                <option value="{{ val }}" {% if metodo == val %}selected{% endif %}>{{ val }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="fecha_desde" class="form-control" value="{{ fecha_desde }}">
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="fecha_hasta" class="form-control" value="{{ fecha_hasta }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">🔍 Filtrar</button>
+        </div>
+        {% if metodo or fecha_desde or fecha_hasta %}
+        <div class="col-md-1">
+            <a href="{% url 'inventario:pagos' %}" class="btn btn-outline-secondary w-100">✕</a>
+        </div>
+        {% endif %}
+    </form>
+
     <table class="table table-sm table-hover">
         <thead>
             <tr>

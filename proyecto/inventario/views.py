@@ -81,9 +81,18 @@ def base(request):
 
 @autorizacion(["Administrador"])
 def ver_usuarios(request):
+    buscar = request.GET.get("buscar", "")
+    rol = request.GET.get("rol", "")
     t = Usuario.objects.all()
+    if buscar:
+        t = t.filter(nombre__icontains=buscar) | t.filter(apellido__icontains=buscar) | t.filter(correo__icontains=buscar)
+        t = t.distinct()
+    if rol:
+        t = t.filter(rol=rol)
     contexto = {
-        "datos": t
+        "datos": t,
+        "buscar": buscar,
+        "rol": rol,
     }
     return render(request, "Usuario/usuarios.html", contexto)
 
@@ -157,9 +166,19 @@ def actualizar_usuario(request, id):
 
 @autorizacion(["Empleado","Administrador"])
 def ver_productos(request):
+    buscar = request.GET.get("buscar", "")
+    categoria = request.GET.get("categoria", "")
     t = Producto.objects.all()
+    if buscar:
+        t = t.filter(nombre__icontains=buscar) | t.filter(color__icontains=buscar) | t.filter(descripcion__icontains=buscar)
+        t = t.distinct()
+    if categoria:
+        t = t.filter(categoria=categoria)
     contexto = {
-        "datos": t
+        "datos": t,
+        "buscar": buscar,
+        "categoria": categoria,
+        "categorias": Producto.CATEGORIAS,
     }
     return render(request, "Inventarios/productos.html", contexto)
 
@@ -191,6 +210,8 @@ def crear_producto(request):
                 stock = request.POST.get('stock'), 
                 precio = request.POST.get('precio')
             )
+            if request.FILES.get('imagen'):
+                t.imagen = request.FILES['imagen']
             t.save()
             messages.success(request, "Producto guardado con éxito!!!")
         except Exception as e:
@@ -213,6 +234,10 @@ def actualizar_producto(request, id):
             q.talla = request.POST.get('talla')
             q.stock = request.POST.get('stock')
             q.precio = request.POST.get('precio')
+            if request.FILES.get('imagen'):
+                q.imagen = request.FILES['imagen']
+            elif request.POST.get('eliminar_imagen'):
+                q.imagen = None
             q.save()
             messages.success(request, "Producto actualizado con éxito!!!")
         except Exception as e:
@@ -232,9 +257,14 @@ def actualizar_producto(request, id):
 
 @autorizacion(["Administrador", "Empleado"])
 def ver_proveedores(request):
+    buscar = request.GET.get("buscar", "")
     t = Proveedor.objects.all()
+    if buscar:
+        t = t.filter(nombre__icontains=buscar) | t.filter(correo__icontains=buscar) | t.filter(telefono__icontains=buscar)
+        t = t.distinct()
     contexto = {
-        "datos": t
+        "datos": t,
+        "buscar": buscar,
     }
     return render(request, "Proveedor/proveedor.html", contexto)
 
@@ -300,9 +330,19 @@ def actualizar_proveedor(request, id):
 
 @autorizacion(["Cliente"])
 def ver_catalogo(request):
+    buscar = request.GET.get("buscar", "")
+    categoria = request.GET.get("categoria", "")
     t = Producto.objects.filter(stock__gt=0)
+    if buscar:
+        t = t.filter(nombre__icontains=buscar) | t.filter(descripcion__icontains=buscar) | t.filter(color__icontains=buscar)
+        t = t.distinct()
+    if categoria:
+        t = t.filter(categoria=categoria)
     contexto = {
-        "datos": t
+        "datos": t,
+        "buscar": buscar,
+        "categoria": categoria,
+        "categorias": Producto.CATEGORIAS,
     }
     return render(request, "Catalogo/catalogo.html", contexto)
 
@@ -381,14 +421,29 @@ def actualizar_carrito(request, id):
 
 @autorizacion()
 def ver_pedidos(request):
+    estado = request.GET.get("estado", "")
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
+
     if request.session["logueado"]["rol"] == "Cliente":
         usuario = Usuario.objects.get(pk=request.session["logueado"]["id"])
         t = Pedido.objects.filter(usuario=usuario).order_by("-fecha")
     else:
         t = Pedido.objects.all().order_by("-fecha")
 
+    if estado:
+        t = t.filter(estado=estado)
+    if fecha_desde:
+        t = t.filter(fecha__date__gte=fecha_desde)
+    if fecha_hasta:
+        t = t.filter(fecha__date__lte=fecha_hasta)
+
     contexto = {
-        "datos": t
+        "datos": t,
+        "estado": estado,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "estados": Pedido.ESTADOS,
     }
     return render(request, "Pedido/pedidos.html", contexto)
 
@@ -477,9 +532,22 @@ def ver_detalle_pedido(request, id):
 
 @autorizacion(["Administrador", "Empleado"])
 def ver_pagos(request):
+    metodo = request.GET.get("metodo", "")
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
     t = Pago.objects.all().order_by("-fecha")
+    if metodo:
+        t = t.filter(metodo=metodo)
+    if fecha_desde:
+        t = t.filter(fecha__date__gte=fecha_desde)
+    if fecha_hasta:
+        t = t.filter(fecha__date__lte=fecha_hasta)
     contexto = {
-        "datos": t
+        "datos": t,
+        "metodo": metodo,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "metodos": Pago.METODOS,
     }
     return render(request, "Pago/pagos.html", contexto)
 
@@ -539,9 +607,26 @@ def registrar_pago(request, id):
 
 @autorizacion(["Administrador", "Empleado"])
 def ver_compras(request):
+    estado = request.GET.get("estado", "")
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
+    buscar = request.GET.get("buscar", "")
     t = Compra.objects.all().order_by("-fecha")
+    if estado:
+        t = t.filter(estado=estado)
+    if fecha_desde:
+        t = t.filter(fecha__date__gte=fecha_desde)
+    if fecha_hasta:
+        t = t.filter(fecha__date__lte=fecha_hasta)
+    if buscar:
+        t = t.filter(proveedor__nombre__icontains=buscar)
     contexto = {
-        "datos": t
+        "datos": t,
+        "estado": estado,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "buscar": buscar,
+        "estados": Compra.ESTADOS,
     }
     return render(request, "Compra/compras.html", contexto)
 
@@ -686,9 +771,26 @@ def recibir_compra(request, id):
 
 @autorizacion(["Administrador", "Empleado"])
 def ver_movimientos(request):
+    tipo = request.GET.get("tipo", "")
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
+    buscar = request.GET.get("buscar", "")
     t = MovimientoInventario.objects.all().order_by("-fecha")
+    if tipo:
+        t = t.filter(tipo=tipo)
+    if fecha_desde:
+        t = t.filter(fecha__date__gte=fecha_desde)
+    if fecha_hasta:
+        t = t.filter(fecha__date__lte=fecha_hasta)
+    if buscar:
+        t = t.filter(producto__nombre__icontains=buscar) | t.filter(descripcion__icontains=buscar)
+        t = t.distinct()
     contexto = {
-        "datos": t
+        "datos": t,
+        "tipo": tipo,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
+        "buscar": buscar,
     }
     return render(request, "Inventarios/movimientos.html", contexto)
 
@@ -696,10 +798,21 @@ def ver_movimientos(request):
 
 @autorizacion(["Administrador"])
 def ver_contabilidad(request):
+    tipo = request.GET.get("tipo", "")
+    fecha_desde = request.GET.get("fecha_desde", "")
+    fecha_hasta = request.GET.get("fecha_hasta", "")
     movimientos = MovimientoContable.objects.all().order_by("-fecha")
+    if tipo:
+        movimientos = movimientos.filter(tipo=tipo)
+    if fecha_desde:
+        movimientos = movimientos.filter(fecha__date__gte=fecha_desde)
+    if fecha_hasta:
+        movimientos = movimientos.filter(fecha__date__lte=fecha_hasta)
 
-    total_ingresos = movimientos.filter(tipo="Ingreso").aggregate(total=Sum("valor"))["total"] or 0
-    total_egresos  = movimientos.filter(tipo="Egreso").aggregate(total=Sum("valor"))["total"] or 0
+    # Totales siempre sobre todos los registros (sin filtro de fechas)
+    todos = MovimientoContable.objects.all()
+    total_ingresos = todos.filter(tipo="Ingreso").aggregate(total=Sum("valor"))["total"] or 0
+    total_egresos  = todos.filter(tipo="Egreso").aggregate(total=Sum("valor"))["total"] or 0
     balance        = total_ingresos - total_egresos
 
     contexto = {
@@ -707,5 +820,8 @@ def ver_contabilidad(request):
         "total_ingresos": total_ingresos,
         "total_egresos": total_egresos,
         "balance": balance,
+        "tipo": tipo,
+        "fecha_desde": fecha_desde,
+        "fecha_hasta": fecha_hasta,
     }
     return render(request, "Contabilidad/contabilidad.html", contexto)
