@@ -825,3 +825,55 @@ def ver_contabilidad(request):
         "fecha_hasta": fecha_hasta,
     }
     return render(request, "Contabilidad/contabilidad.html", contexto)
+
+# importar las serializaciones de los modelos
+from .serializador import *
+
+# importar el módulo de ViewSets para las vistas de las API's
+from rest_framework import viewsets
+
+# Vistas para las APIs
+class UsuarioViewSet(viewsets.ModelViewSet):
+    queryset = Usuario.objects.all()
+    serializer_class = UsuarioSerializer
+
+class ProductoViewSet(viewsets.ModelViewSet):
+    queryset = Producto.objects.all()
+    serializer_class = ProductoSerializer
+
+class ProveedorViewSet(viewsets.ModelViewSet):
+    queryset = Proveedor.objects.all()
+    serializer_class = ProveedorSerializer
+
+class CarritoViewSet(viewsets.ModelViewSet):
+    queryset = Carrito.objects.all()
+    serializer_class = CarritoSerializer
+
+class PedidoViewSet(viewsets.ModelViewSet):
+    queryset = Pedido.objects.all()
+    serializer_class = PedidoSerializer
+
+class DetallePedidoViewSet(viewsets.ModelViewSet):
+    queryset = DetallePedido.objects.all()
+    serializer_class = DetallePedidoSerializer
+
+class PagoViewSet(viewsets.ModelViewSet):
+    queryset = Pago.objects.all()
+    serializer_class = PagoSerializer
+
+class CompraViewSet(viewsets.ModelViewSet):
+    queryset = Compra.objects.all()
+    serializer_class = CompraSerializer
+
+class DetalleCompraViewSet(viewsets.ModelViewSet):
+    queryset = DetalleCompra.objects.all()
+    serializer_class = DetalleCompraSerializer
+
+class MovimientoInventarioViewSet(viewsets.ModelViewSet):
+    queryset = MovimientoInventario.objects.all()
+    serializer_class = MovimientoInventarioSerializer
+
+class MovimientoContableViewSet(viewsets.ModelViewSet):
+    queryset = MovimientoContable.objects.all()
+    serializer_class = MovimientoContableSerializer
+
