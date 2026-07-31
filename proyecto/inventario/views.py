@@ -835,6 +835,9 @@ from rest_framework import viewsets
 from rest_framework.authentication import *
 from rest_framework.permissions import *
 
+from rest_framework.viewsets import ModelViewSet
+from drf_spectacular.utils import extend_schema
+
 
 # Vistas para las APIs
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -844,9 +847,23 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
 
+    @extend_schema(
+        summary="Lista de usuarios",
+        description="Obtiene todos los usuarios registrados."
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
+
+    @extend_schema(
+        summary="Lista de productos",
+        description="Obtiene todos los productos registrados."
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 class ProveedorViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
@@ -855,12 +872,26 @@ class ProveedorViewSet(viewsets.ModelViewSet):
     queryset = Proveedor.objects.all()
     serializer_class = ProveedorSerializer
 
+    @extend_schema(
+        summary="Lista de proveedores",
+        description="Obtiene todos los proveedores registrados."
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 class CarritoViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     queryset = Carrito.objects.all()
     serializer_class = CarritoSerializer
+
+    @extend_schema(
+            summary="Lista de carritos",
+            description="Obtiene todos los carritos registrados."
+        )
+    def list(self, request, *args, **kwargs):
+            return super().list(request, *args, **kwargs)
 
 class PedidoViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
@@ -869,12 +900,26 @@ class PedidoViewSet(viewsets.ModelViewSet):
     queryset = Pedido.objects.all()
     serializer_class = PedidoSerializer
 
+    @extend_schema(
+            summary="Lista de pedidos",
+            description="Obtiene todos los pedidos registrados."
+        )
+    def list(self, request, *args, **kwargs):
+            return super().list(request, *args, **kwargs)
+
 class DetallePedidoViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     queryset = DetallePedido.objects.all()
     serializer_class = DetallePedidoSerializer
+
+    @extend_schema(
+        summary="Lista de detalle pedidos",
+        description="Obtiene todos los detalles de pedidos registrados."
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 class PagoViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
@@ -883,12 +928,26 @@ class PagoViewSet(viewsets.ModelViewSet):
     queryset = Pago.objects.all()
     serializer_class = PagoSerializer
 
+    @extend_schema(
+        summary="Lista de pagos",
+        description="Obtiene todos los pagos registrados."
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 class CompraViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     queryset = Compra.objects.all()
     serializer_class = CompraSerializer
+
+    @extend_schema(
+        summary="Lista de compras",
+        description="Obtiene todos los compras registrados."
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 class DetalleCompraViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
@@ -897,6 +956,13 @@ class DetalleCompraViewSet(viewsets.ModelViewSet):
     queryset = DetalleCompra.objects.all()
     serializer_class = DetalleCompraSerializer
 
+    @extend_schema(
+        summary="Lista de detalles de compras",
+        description="Obtiene todos los detalles de compras registrados."
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 class MovimientoInventarioViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -904,10 +970,24 @@ class MovimientoInventarioViewSet(viewsets.ModelViewSet):
     queryset = MovimientoInventario.objects.all()
     serializer_class = MovimientoInventarioSerializer
 
+    @extend_schema(
+        summary="Lista de movimientos de inventario",
+        description="Obtiene todos los movimientos de inventario registrados."
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 class MovimientoContableViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, TokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     queryset = MovimientoContable.objects.all()
     serializer_class = MovimientoContableSerializer
+
+    @extend_schema(
+        summary="Lista de movimentos contables",
+        description="Obtiene todos los movimientos contables registrados."
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
