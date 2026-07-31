@@ -832,8 +832,15 @@ from .serializador import *
 # importar el módulo de ViewSets para las vistas de las API's
 from rest_framework import viewsets
 
+from rest_framework.authentication import *
+from rest_framework.permissions import *
+
+
 # Vistas para las APIs
 class UsuarioViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
 
@@ -842,38 +849,65 @@ class ProductoViewSet(viewsets.ModelViewSet):
     serializer_class = ProductoSerializer
 
 class ProveedorViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Proveedor.objects.all()
     serializer_class = ProveedorSerializer
 
 class CarritoViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
     queryset = Carrito.objects.all()
     serializer_class = CarritoSerializer
 
 class PedidoViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     queryset = Pedido.objects.all()
     serializer_class = PedidoSerializer
 
 class DetallePedidoViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     queryset = DetallePedido.objects.all()
     serializer_class = DetallePedidoSerializer
 
 class PagoViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     queryset = Pago.objects.all()
     serializer_class = PagoSerializer
 
 class CompraViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     queryset = Compra.objects.all()
     serializer_class = CompraSerializer
 
 class DetalleCompraViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     queryset = DetalleCompra.objects.all()
     serializer_class = DetalleCompraSerializer
 
 class MovimientoInventarioViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     queryset = MovimientoInventario.objects.all()
     serializer_class = MovimientoInventarioSerializer
 
 class MovimientoContableViewSet(viewsets.ModelViewSet):
+    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    
     queryset = MovimientoContable.objects.all()
     serializer_class = MovimientoContableSerializer
 
