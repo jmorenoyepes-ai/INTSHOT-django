@@ -1,88 +1,120 @@
 {% load static %}
 
-<nav class="navbar navbar-expand-lg navbar-dark" style="background-color: #183981e3;">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'inventario:inicio' %}">
-            <img src="{% static 'img/Logo-blanco.jpeg' %}" alt="INTSHOT" width="50" height="50">
-        </a>
-        <a class="navbar-brand" href="{% url 'inventario:inicio' %}">INTSHOT</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link active" aria-current="page" href="{% url 'inventario:inicio' %}">Inicio</a>
-                </li>
+<aside class="app-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
 
-                {% if request.session.logueado.rol == "Administrador" %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inventario:usuarios' %}">Usuarios</a>
-                    </li>
-                {% endif %}
-
-                {% if request.session.logueado.rol == "Administrador" or request.session.logueado.rol == "Empleado" %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            Inventario
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'inventario:productos' %}">Productos</a></li>
-                            <li><a class="dropdown-item" href="{% url 'inventario:movimientos' %}">Movimientos</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inventario:proveedores' %}">Proveedores</a>
-                    </li>
-
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            Compras
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'inventario:compras' %}">Ver Compras</a></li>
-                            <li><a class="dropdown-item" href="{% url 'inventario:crear_compra' %}">Nueva Compra</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inventario:pedidos' %}">Pedidos</a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inventario:pagos' %}">Pagos</a>
-                    </li>
-                {% endif %}
-
-                {% if request.session.logueado.rol == "Administrador" %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inventario:contabilidad' %}">Contabilidad</a>
-                    </li>
-                {% endif %}
-
-                {% if request.session.logueado.rol == "Cliente" %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inventario:catalogo' %}">Catálogo</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inventario:carrito' %}">🛒 Carrito</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'inventario:pedidos' %}">Mis Pedidos</a>
-                    </li>
-                {% endif %}
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'inventario:logout' %}">Cerrar sesión</a>
-                </li>
-            </ul>
-            <span class="navbar-text text-white me-3">
-                {{ request.session.logueado.nombre }} | {{ request.session.logueado.rol }}
-            </span>
+    <div class="sidebar-brand">
+        <img src="{% static 'img/Logo-blanco.jpeg' %}" alt="INTSHOT">
+        <div class="sidebar-brand-text">
+            <h1 id="appSidebarLabel">INTSHOT</h1>
         </div>
+        <button type="button" class="btn-close d-lg-none ms-auto" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar" aria-label="Cerrar"></button>
     </div>
-</nav>
+
+    <nav class="sidebar-nav">
+
+        {% url 'inventario:inicio' as url_inicio %}
+        <a class="sidebar-link {% if request.path == url_inicio %}active{% endif %}" href="{{ url_inicio }}">
+            <span class="material-symbols-outlined">home</span>
+            <span>Inicio</span>
+        </a>
+
+        {% if request.session.logueado.rol == "Administrador" %}
+            {% url 'inventario:usuarios' as url_usuarios %}
+            <a class="sidebar-link {% if request.path == url_usuarios %}active{% endif %}" href="{{ url_usuarios }}">
+                <span class="material-symbols-outlined">group</span>
+                <span>Usuarios</span>
+            </a>
+        {% endif %}
+
+        {% if request.session.logueado.rol == "Administrador" or request.session.logueado.rol == "Empleado" %}
+            <p class="nav-group-label">Inventario</p>
+
+            {% url 'inventario:productos' as url_productos %}
+            <a class="sidebar-link sidebar-sublink {% if request.path == url_productos %}active{% endif %}" href="{{ url_productos }}">
+                <span class="material-symbols-outlined">inventory_2</span>
+                <span>Productos</span>
+            </a>
+
+            {% url 'inventario:movimientos' as url_movimientos %}
+            <a class="sidebar-link sidebar-sublink {% if request.path == url_movimientos %}active{% endif %}" href="{{ url_movimientos }}">
+                <span class="material-symbols-outlined">sync_alt</span>
+                <span>Movimientos</span>
+            </a>
+
+            
+            <p class="nav-group-label">Compras</p>
+            
+            {% url 'inventario:compras' as url_compras %}
+            <a class="sidebar-link sidebar-sublink {% if request.path == url_compras %}active{% endif %}" href="{{ url_compras }}">
+                <span class="material-symbols-outlined">shopping_bag</span>
+                <span>Ver Compras</span>
+            </a>
+            
+            {% url 'inventario:crear_compra' as url_crear_compra %}
+            <a class="sidebar-link sidebar-sublink {% if request.path == url_crear_compra %}active{% endif %}" href="{{ url_crear_compra }}">
+                <span class="material-symbols-outlined">add_shopping_cart</span>
+                <span>Nueva Compra</span>
+            </a>
+            
+            {% url 'inventario:proveedores' as url_proveedores %}
+            <a class="sidebar-link {% if request.path == url_proveedores %}active{% endif %}" href="{{ url_proveedores }}">
+                <span class="material-symbols-outlined">local_shipping</span>
+                <span>Proveedores</span>
+            </a>
+
+            {% url 'inventario:pedidos' as url_pedidos %}
+            <a class="sidebar-link {% if request.path == url_pedidos %}active{% endif %}" href="{{ url_pedidos }}">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <span>Pedidos</span>
+            </a>
+            
+            {% url 'inventario:pagos' as url_pagos %}
+            <a class="sidebar-link {% if request.path == url_pagos %}active{% endif %}" href="{{ url_pagos }}">
+                <span class="material-symbols-outlined">payments</span>
+                <span>Pagos</span>
+            </a>
+            {% endif %}
+            
+            {% if request.session.logueado.rol == "Administrador" %}
+            {% url 'inventario:contabilidad' as url_contabilidad %}
+            <a class="sidebar-link {% if request.path == url_contabilidad %}active{% endif %}" href="{{ url_contabilidad }}">
+                <span class="material-symbols-outlined">account_balance</span>
+                <span>Contabilidad</span>
+            </a>
+        {% endif %}
+
+        {% if request.session.logueado.rol == "Cliente" %}
+            {% url 'inventario:catalogo' as url_catalogo %}
+            <a class="sidebar-link {% if request.path == url_catalogo %}active{% endif %}" href="{{ url_catalogo }}">
+                <span class="material-symbols-outlined">menu_book</span>
+                <span>Catálogo</span>
+            </a>
+
+            {% url 'inventario:carrito' as url_carrito %}
+            <a class="sidebar-link {% if request.path == url_carrito %}active{% endif %}" href="{{ url_carrito }}">
+                <span class="material-symbols-outlined">shopping_cart</span>
+                <span>Carrito</span>
+            </a>
+
+            {% url 'inventario:pedidos' as url_pedidos_cliente %}
+            <a class="sidebar-link {% if request.path == url_pedidos_cliente %}active{% endif %}" href="{{ url_pedidos_cliente }}">
+                <span class="material-symbols-outlined">receipt_long</span>
+                <span>Mis Pedidos</span>
+            </a>
+        {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="sidebar-user">
+            <div class="avatar">{{ request.session.logueado.nombre|slice:":1" }}</div>
+            <div class="user-meta">
+                <p class="user-name">{{ request.session.logueado.nombre }}</p>
+                <p class="user-role">{{ request.session.logueado.rol }}</p>
+            </div>
+        </div>
+        <a class="sidebar-logout" href="{% url 'inventario:logout' %}">
+            <span class="material-symbols-outlined">logout</span>
+            <span>Cerrar sesión</span>
+        </a>
+    </div>
+</aside>

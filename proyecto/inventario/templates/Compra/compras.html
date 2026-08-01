@@ -3,8 +3,13 @@
 
 {% block cuerpo %}
 <div class="container-lg">
-    <h1 class="display-4" style="text-align: center;">Compras a Proveedores</h1>
-    <a class="btn btn-success mb-3" href="{% url 'inventario:crear_compra' %}">Nueva Compra</a>
+    <div class="page-header">
+        <h1 class="display-4">Compras a Proveedores</h1>
+        <a class="btn btn-success" href="{% url 'inventario:crear_compra' %}">
+            <span class="material-symbols-outlined" style="font-size:18px; vertical-align:-4px;">add</span>
+            Nueva Compra
+        </a>
+    </div>
 
     <!-- Filtros -->
     <form method="get" class="row g-2 mb-3 align-items-end">

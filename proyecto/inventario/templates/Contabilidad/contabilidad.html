@@ -6,28 +6,31 @@
     <h1 class="display-4" style="text-align: center;">Contabilidad</h1>
     <br>
 
-    <div class="row mb-4">
+    <div class="row mb-4 g-3">
         <div class="col-md-4">
-            <div class="card text-white bg-success">
+            <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Total Ingresos</h5>
-                    <p class="card-text fs-4">${{ total_ingresos }}</p>
+                    <span class="material-symbols-outlined" style="color:#16a34a;">trending_up</span>
+                    <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Total Ingresos</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:#16a34a;">${{ total_ingresos }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-white bg-danger">
+            <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Total Egresos</h5>
-                    <p class="card-text fs-4">${{ total_egresos }}</p>
+                    <span class="material-symbols-outlined" style="color:#ef4444;">trending_down</span>
+                    <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Total Egresos</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:#ef4444;">${{ total_egresos }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-white {% if balance >= 0 %}bg-primary{% else %}bg-warning{% endif %}">
+            <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Balance</h5>
-                    <p class="card-text fs-4">${{ balance }}</p>
+                    <span class="material-symbols-outlined" style="color:{% if balance >= 0 %}#0052cc{% else %}#f59e0b{% endif %};">account_balance_wallet</span>
+                    <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Balance</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:{% if balance >= 0 %}#0052cc{% else %}#f59e0b{% endif %};">${{ balance }}</p>
                 </div>
             </div>
         </div>
