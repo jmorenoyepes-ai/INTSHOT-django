@@ -19,7 +19,7 @@ class ExpiringTokenAuthentication(TokenAuthentication):
         # Ver tiempo transcurrido
         time_elapsed = timezone.now() - token.created
         print(f"--- 2. TIEMPO TRANSCURRIDO: {time_elapsed} ---")
-        print(f"--- 3. ¿Es mayor a 2 minutos?: {time_elapsed > timedelta(minutes=2)} ---")
+        print(f"--- 3. ¿Es mayor a 2 minutos?: {time_elapsed > timedelta(hours=24)} ---")
 
         if time_elapsed > timedelta(minutes=2):
             print("--- 4. EL TOKEN EXPIRÓ. ELIMINANDO DE LA BD... ---")

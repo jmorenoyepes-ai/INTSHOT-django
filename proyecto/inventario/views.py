@@ -844,7 +844,7 @@ from .permissions import IsStaffOrReadOnly
 
 # Vistas para las APIs
 class UsuarioViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication, ExpiringTokenAuthentication]
+    authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
     
     queryset = Usuario.objects.all()
@@ -869,7 +869,7 @@ class ProductoViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 class ProveedorViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     queryset = Proveedor.objects.all()
@@ -883,7 +883,7 @@ class ProveedorViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 class CarritoViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     queryset = Carrito.objects.all()
@@ -897,7 +897,7 @@ class CarritoViewSet(viewsets.ModelViewSet):
             return super().list(request, *args, **kwargs)
 
 class PedidoViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     queryset = Pedido.objects.all()
@@ -911,7 +911,7 @@ class PedidoViewSet(viewsets.ModelViewSet):
             return super().list(request, *args, **kwargs)
 
 class DetallePedidoViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     queryset = DetallePedido.objects.all()
@@ -925,7 +925,7 @@ class DetallePedidoViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 class PagoViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     queryset = Pago.objects.all()
@@ -939,7 +939,7 @@ class PagoViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 class CompraViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     queryset = Compra.objects.all()
@@ -953,7 +953,7 @@ class CompraViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 class DetalleCompraViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     queryset = DetalleCompra.objects.all()
@@ -967,7 +967,7 @@ class DetalleCompraViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 class MovimientoInventarioViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     queryset = MovimientoInventario.objects.all()
@@ -981,7 +981,7 @@ class MovimientoInventarioViewSet(viewsets.ModelViewSet):
         return super().list(request, *args, **kwargs)
 
 class MovimientoContableViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
+    authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated]
     
     queryset = MovimientoContable.objects.all()

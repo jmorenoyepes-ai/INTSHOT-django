@@ -129,7 +129,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'inventario.authentication.ExpiringTokenAuthentication',
-        'rest_framework.authentication.TokenAuthentication', 
+        #'rest_framework.authentication.TokenAuthentication', 
         #'rest_framework.authentication.BasicAuthentication',    # Terceros
         'rest_framework.authentication.SessionAuthentication',  # propia web
     ],
