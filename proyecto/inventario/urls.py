@@ -2,6 +2,7 @@
 
 from django.urls import path
 from . import views
+from .views import LogoutView
 
 app_name = "inventario"
 urlpatterns = [
@@ -63,4 +64,7 @@ urlpatterns = [
 
     # módulo contabilidad
     path('contabilidad/', views.ver_contabilidad, name="contabilidad"),
+
+    #autenticacion por tokens
+    path('api/auth/logout/', LogoutView.as_view(), name='api_logout'),
 ]

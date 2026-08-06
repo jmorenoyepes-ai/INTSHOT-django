@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg">
+    <h1 class="display-4" style="text-align: center;">Contabilidad</h1>
+    <br>
+
+    <div class="row mb-4 g-3">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <span class="material-symbols-outlined" style="color:#16a34a;">trending_up</span>
+                    <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Total Ingresos</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:#16a34a;">${{ total_ingresos }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <span class="material-symbols-outlined" style="color:#ef4444;">trending_down</span>
+                    <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Total Egresos</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:#ef4444;">${{ total_egresos }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <span class="material-symbols-outlined" style="color:{% if balance >= 0 %}#0052cc{% else %}#f59e0b{% endif %};">account_balance_wallet</span>
+                    <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Balance</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:{% if balance >= 0 %}#0052cc{% else %}#f59e0b{% endif %};">${{ balance }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <form method="get" class="row g-2 mb-3 align-items-end">
+        <div class="col-md-3">
+            <select name="tipo" class="form-select">
+                <option value="">Todos los tipos</option>
+                <option value="Ingreso" {% if tipo == 'Ingreso' %}selected{% endif %}>Ingreso</option>
+                <option value="Egreso" {% if tipo == 'Egreso' %}selected{% endif %}>Egreso</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="fecha_desde" class="form-control" value="{{ fecha_desde }}">
+        </div>
+        <div class="col-md-3">
+            <input type="date" name="fecha_hasta" class="form-control" value="{{ fecha_hasta }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">🔍 Filtrar</button>
+        </div>
+        {% if tipo or fecha_desde or fecha_hasta %}
+        <div class="col-md-1">
+            <a href="{% url 'inventario:contabilidad' %}" class="btn btn-outline-secondary w-100">✕</a>
+        </div>
+        {% endif %}
+    </form>
+
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Tipo</th>
+                <th>Descripción</th>
+                <th>Valor</th>
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            {% for i in datos %}
+            <tr>
+                <td>{{ i.id }}</td>
+                <td>{{ i.fecha|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if i.tipo == "Ingreso" %}
+                        <span class="badge bg-success">{{ i.tipo }}</span>
+                    {% else %}
+                        <span class="badge bg-danger">{{ i.tipo }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ i.descripcion }}</td>
+                <td>${{ i.valor }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">No hay movimientos contables registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

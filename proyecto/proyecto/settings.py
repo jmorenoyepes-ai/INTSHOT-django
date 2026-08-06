@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework.authtoken',
     'drf_spectacular',
     'inventario',
 ]
@@ -127,11 +128,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Control de Autenticación de la API
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
+        'inventario.authentication.ExpiringTokenAuthentication',
+        'rest_framework.authentication.TokenAuthentication', 
         #'rest_framework.authentication.BasicAuthentication',    # Terceros
-        #'rest_framework.authentication.SessionAuthentication',  # propia web
+        'rest_framework.authentication.SessionAuthentication',  # propia web
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',
+        'rest_framework.permissions.IsAuthenticated',
         #'rest_framework.permissions.IsAuthenticatedOrReadOnly',
         #'rest_framework.permissions.IsAuthenticated',
     ],

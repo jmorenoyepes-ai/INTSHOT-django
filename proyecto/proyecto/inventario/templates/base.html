@@ -1,0 +1,81 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INTSHOT</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/notificaciones.css' %}" />
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon_io/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon_io/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon_io/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'favicon_io/site.webmanifest' %}">
+</head>
+
+<body>
+    <div class="app-shell d-lg-flex">
+        {% include 'menu.html' %}
+
+        <div class="app-content-wrap flex-grow-1 d-flex flex-column">
+            <header class="app-topbar">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="topbar-toggle d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#appSidebar" aria-controls="appSidebar" aria-label="Abrir menú">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                    <span class="topbar-brand d-lg-none">INTSHOT</span>
+                </div>
+                <div class="topbar-user">
+                    <span class="material-symbols-outlined" style="font-size: 20px;">account_circle</span>
+                    <span>{{ request.session.logueado.nombre }} &middot; {{ request.session.logueado.rol }}</span>
+                </div>
+            </header>
+
+            <main class="app-main">
+                {% include 'notificaciones.html' %}
+
+                {% block cuerpo %}
+                {% endblock %}
+            </main>
+
+            <footer class="app-footer">
+                {% include 'footer.html' %}
+            </footer>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="confirmacion" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modal_title">Modal title</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="modal_body">
+                    <p>Modal body text goes here.</p>
+                </div>
+                <div class="modal-footer">
+                    <button id="modal_aceptar" type="button" class="btn btn-primary">Aceptar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/librerias.js' %}"></script>
+</body>
+
+</html>

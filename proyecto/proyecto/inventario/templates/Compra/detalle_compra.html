@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg">
+    <h1 class="display-4" style="text-align: center;">Detalle Compra #{{ compra.id }}</h1>
+    <p><strong>Proveedor:</strong> {{ compra.proveedor.nombre }}</p>
+    <p><strong>Fecha:</strong> {{ compra.fecha|date:"d/m/Y H:i" }}</p>
+    <p><strong>Estado:</strong>
+        {% if compra.estado == "Pendiente" %}
+            <span class="badge bg-warning text-dark">{{ compra.estado }}</span>
+        {% elif compra.estado == "Recibida" %}
+            <span class="badge bg-success">{{ compra.estado }}</span>
+        {% else %}
+            <span class="badge bg-info text-dark">{{ compra.estado }}</span>
+        {% endif %}
+    </p>
+
+    {% if compra.estado == "Pendiente" %}
+        <a href="{% url 'inventario:agregar_detalle_compra' compra.id %}" class="btn btn-primary mb-3">Agregar Producto</a>
+    {% endif %}
+
+    <table class="table table-sm table-hover">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Cantidad Pedida</th>
+                {% if compra.estado != "Pendiente" %}
+                <th>Cantidad Recibida</th>
+                {% endif %}
+                <th>Precio unitario</th>
+                <th>Subtotal</th>
+                {% if compra.estado == "Pendiente" %}
+                <th>Acciones</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody class="table-group-divider">
+            {% for i in datos %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ i.producto.nombre }}</td>
+                <td>{{ i.producto.categoria }}</td>
+                <td>{{ i.cantidad }}</td>
+                {% if compra.estado != "Pendiente" %}
+                <td>
+                    {% if i.cantidad_recibida < i.cantidad %}
+                        <span class="text-danger fw-bold">{{ i.cantidad_recibida }}</span>
+                    {% else %}
+                        {{ i.cantidad_recibida }}
+                    {% endif %}
+                </td>
+                {% endif %}
+                <td>${{ i.precio_unitario }}</td>
+                <td>${{ i.subtotal }}</td>
+                {% if compra.estado == "Pendiente" %}
+                <td>
+                    <button
+                        onclick="modal_eliminar('Producto', 'Está seguro de eliminar <strong>{{ i.producto.nombre }}</strong> de la compra?', `{% url 'inventario:eliminar_detalle_compra' i.id %}`);"
+                        type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                        data-bs-target="#confirmacion">Eliminar</button>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center text-muted">No hay productos en esta compra.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="{% if compra.estado == 'Pendiente' %}5{% else %}6{% endif %}" class="text-end fw-bold">Total:</td>
+                <td class="fw-bold">${{ compra.total }}</td>
+                {% if compra.estado == "Pendiente" %}<td></td>{% endif %}
+            </tr>
+        </tfoot>
+    </table>
+
+    <div class="d-flex gap-2">
+        <a href="{% url 'inventario:compras' %}" class="btn btn-outline-secondary">Volver a Compras</a>
+        {% if compra.estado == "Pendiente" %}
+            <a href="{% url 'inventario:recibir_compra' compra.id %}" class="btn btn-success">Recibir Compra</a>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

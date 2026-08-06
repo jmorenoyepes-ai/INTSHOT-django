@@ -838,11 +838,14 @@ from rest_framework.permissions import *
 from rest_framework.viewsets import ModelViewSet
 from drf_spectacular.utils import extend_schema
 
+from inventario.authentication import ExpiringTokenAuthentication
+from .permissions import IsStaffOrReadOnly 
+
 
 # Vistas para las APIs
 class UsuarioViewSet(viewsets.ModelViewSet):
-    authentication_classes = [SessionAuthentication, TokenAuthentication]
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication, TokenAuthentication, ExpiringTokenAuthentication]
+    permission_classes = [IsAuthenticated, IsStaffOrReadOnly]
     
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
@@ -991,3 +994,19 @@ class MovimientoContableViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Elimina el token asociado al usuario de la petición
+        request.user.auth_token.delete()
+        return Response(
+            {"message": "Sesión cerrada correctamente. Token destruido."}, 
+            status=status.HTTP_200_OK
+        )

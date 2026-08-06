@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg">
+    <h1 class="display-4" style="text-align: center;">Catálogo de Productos</h1>
+    <br>
+
+    <!-- Filtros catálogo -->
+    <form method="get" class="row g-2 mb-4 align-items-end">
+        <div class="col-md-5">
+            <input type="text" name="buscar" class="form-control" placeholder="Buscar producto..." value="{{ buscar }}">
+        </div>
+        <div class="col-md-4">
+            <select name="categoria" class="form-select">
+                <option value="">Todas las categorías</option>
+                {% for val, label in categorias %}
+                <option value="{{ val }}" {% if categoria == val %}selected{% endif %}>{{ val }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">🔍 Buscar</button>
+        </div>
+        {% if buscar or categoria %}
+        <div class="col-md-1">
+            <a href="{% url 'inventario:catalogo' %}" class="btn btn-outline-secondary w-100">✕</a>
+        </div>
+        {% endif %}
+    </form>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for i in datos %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <!-- Imagen del producto -->
+                {% if i.imagen %}
+                <img src="{{ i.imagen.url }}" class="card-img-top" alt="{{ i.nombre }}" style="height:220px; object-fit:cover;">
+                {% else %}
+                <div class="d-flex align-items-center justify-content-center bg-light" style="height:220px;">
+                    <div class="text-center text-muted">
+                        <img src="{% static 'img/Logo-INTSHOT.jpg' %}" alt="Sin imagen" style="height:80px; opacity:0.4;">
+                        <p class="mt-2 mb-0 small">Sin imagen</p>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ i.nombre }}</h5>
+                    <p class="card-text text-muted small">{{ i.descripcion }}</p>
+                    <ul class="list-unstyled small">
+                        <li><strong>Color:</strong> {{ i.color }}</li>
+                        <li><strong>Talla:</strong> {{ i.talla }}</li>
+                        <li><span class="badge bg-secondary">{{ i.categoria }}</span></li>
+                        <li><strong>Stock:</strong> {{ i.stock }} unidades</li>
+                    </ul>
+                    <p class="fs-5 text-success fw-bold">${{ i.precio }}</p>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'inventario:agregar_carrito' i.id %}" class="btn btn-primary w-100">
+                        🛒 Agregar al carrito
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <p class="text-center text-muted">No hay productos disponibles en este momento.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
