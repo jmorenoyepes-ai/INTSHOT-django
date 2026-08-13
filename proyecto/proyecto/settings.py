@@ -125,6 +125,11 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Carpetas de media para guardar las imagenes de los productos 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Control de Autenticación de la API
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

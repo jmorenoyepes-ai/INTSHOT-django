@@ -186,8 +186,14 @@ def ver_productos(request):
 def eliminar_producto(request, id):
     try:
         q = Producto.objects.get(pk=id)
+        nombre_producto = q.nombre
+
+        # Eliminar físicamente la imagen de media/
+        if q.imagen:
+            q.imagen.delete(save=False)
+
         q.delete()
-        messages.success(request, f"Producto '{q.nombre}' eliminado!!")
+        messages.success(request, f"Producto '{nombre_producto}' eliminado!!")
     except IntegrityError:
         messages.info(request, f"No se puede eliminar el producto porque tiene registros relacionados.")
     except Producto.DoesNotExist:
@@ -226,7 +232,8 @@ def crear_producto(request):
 def actualizar_producto(request, id):
     if request.method == "POST":
         try:
-            q = Producto.objects.get(pk = id)
+            q = Producto.objects.get(pk=id)
+
             q.nombre = request.POST.get('nombre')
             q.color = request.POST.get('color')
             q.descripcion = request.POST.get('descripcion')
@@ -234,24 +241,42 @@ def actualizar_producto(request, id):
             q.talla = request.POST.get('talla')
             q.stock = request.POST.get('stock')
             q.precio = request.POST.get('precio')
+
+            # Si se subió una nueva imagen
             if request.FILES.get('imagen'):
+
+                # Eliminar la imagen anterior
+                if q.imagen:
+                    q.imagen.delete(save=False)
+
+                # Asignar la nueva imagen
                 q.imagen = request.FILES['imagen']
+
+            # Si se marcó eliminar imagen
             elif request.POST.get('eliminar_imagen'):
+
+                if q.imagen:
+                    q.imagen.delete(save=False)
+
                 q.imagen = None
+
             q.save()
-            messages.success(request, "Producto actualizado con éxito!!!")
+
+            messages.success(request,"Producto actualizado con éxito!!!")
+
         except Exception as e:
             messages.error(request, f"Error : {e}")
 
-        return redirect ('inventario:productos')
-        
-    else:
-        q = Producto.objects.get(pk = id)
-        contexto = {
-            "datos" : q
-        }
-        return render(request, "Inventarios/formulario_producto.html", contexto)
+        return redirect('inventario:productos')
 
+    else:
+        q = Producto.objects.get(pk=id)
+
+        contexto = {
+            "datos": q
+        }
+
+        return render(request,"Inventarios/formulario_producto.html",contexto)
 
 # CRUD de Proveedores
 
