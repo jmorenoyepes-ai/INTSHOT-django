@@ -59,7 +59,7 @@ class Carrito(models.Model):
         return f"{self.usuario.nombre} - {self.producto.nombre}"
 
 class Pedido(models.Model):
-    usuario = models.ForeignKey(Usuario,on_delete=models.CASCADE)
+    usuario = models.ForeignKey(Usuario,on_delete=models.PROTECT)
     fecha = models.DateTimeField(auto_now_add=True)
     ESTADOS = (
         ("Pendiente", "PENDIENTE"),
