@@ -2,68 +2,93 @@
 {% load static %}
 
 {% block cuerpo %}
-<div class="container-lg">
-    <div class="container text-center"></div>
-    {% if datos %}
-    <h1 class="display-4" style="text-align: center;">Actualizar Producto: {{datos}}</h1>
-    {% else %}
-    <h1 class="display-4" style="text-align: center;">Crear Producto</h1>
-    {% endif %}
-    <form action="" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <div class="row align-items-start">
+<div class="container-lg py-3">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+            
+            {% if datos %}
+                <h1 class="display-4">Actualizar Producto: {{ datos.nombre }}</h1>
+            {% else %}
+                <h1 class="display-4">Crear Producto</h1>
+            {% endif %}
+            <p class="text-muted mb-4">Ingrese la información básica e imagen del producto.</p>
 
-            <div class="col">
-                <input value="{{datos.nombre}}" type="text" name="nombre" placeholder="Nombre del producto"
-                    class="form-control">
-                <br>
-                <input value="{{datos.color}}" type="text" name="color" placeholder="Color del producto"
-                    class="form-control">
-                <br>
-                <input value="{{datos.descripcion}}" type="text" name="descripcion"
-                    placeholder="Descripcion del producto" class="form-control">
-                <br>
-                <!-- Imagen del producto -->
-                <label class="form-label fw-semibold">Imagen del producto</label>
-                {% if datos.imagen %}
-                <div class="mb-2">
-                    <img src="{{ datos.imagen.url }}" alt="{{ datos.nombre }}" class="img-thumbnail" style="max-height:150px; max-width:200px;">
-                    <div class="form-check mt-1">
-                        <input class="form-check-input" type="checkbox" name="eliminar_imagen" id="eliminar_imagen">
-                        <label class="form-check-label text-danger" for="eliminar_imagen">Eliminar imagen actual</label>
+            <form action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="row g-3">
+                    <!-- Columna Izquierda -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre del Producto</label>
+                            <input value="{{ datos.nombre }}" type="text" name="nombre" placeholder="Nombre del producto" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Color</label>
+                            <input value="{{ datos.color }}" type="text" name="color" placeholder="Color del producto" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <input value="{{ datos.descripcion }}" type="text" name="descripcion" placeholder="Descripción del producto" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Imagen del producto</label>
+                            {% if datos.imagen %}
+                            <div class="mb-2">
+                                <img src="{{ datos.imagen.url }}" alt="{{ datos.nombre }}" class="img-thumbnail d-block mb-2" style="max-height: 150px; max-width: 200px;">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="eliminar_imagen" id="eliminar_imagen">
+                                    <label class="form-check-label text-danger" for="eliminar_imagen">Eliminar imagen actual</label>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <input type="file" name="imagen" accept="image/*" class="form-control">
+                            <small class="text-muted d-block mt-1">Si no sube imagen, se mostrará una imagen predeterminada en el catálogo.</small>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Categoría</label>
+                            <select name="categoria" class="form-select" required>
+                                <option value="">Seleccione la Categoría</option>
+                                <option value="Camisetas" {% if datos.categoria == 'Camisetas' %}selected{% endif %}>Camisetas</option>
+                                <option value="Pantalones" {% if datos.categoria == 'Pantalones' %}selected{% endif %}>Pantalones</option>
+                                <option value="Chaquetas" {% if datos.categoria == 'Chaquetas' %}selected{% endif %}>Chaquetas</option>
+                                <option value="Accesorios" {% if datos.categoria == 'Accesorios' %}selected{% endif %}>Accesorios</option>
+                                <option value="Insumos" {% if datos.categoria == 'Insumos' %}selected{% endif %}>Insumos</option>
+                                <option value="Otros" {% if datos.categoria == 'Otros' %}selected{% endif %}>Otros</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Talla</label>
+                            <input value="{{ datos.talla }}" type="text" name="talla" placeholder="Talla del producto" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Stock disponible</label>
+                            <input value="{{ datos.stock }}" type="number" min="0" max="999" name="stock" placeholder="Stock del producto" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Precio</label>
+                            <input value="{{ datos.precio }}" type="number" min="0" name="precio" placeholder="Precio del producto" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="col-12 mt-4 text-center">
+                        <button type="submit" class="btn btn-success px-5">Guardar</button>
                     </div>
                 </div>
-                {% endif %}
-                <input type="file" name="imagen" accept="image/*" class="form-control">
-                <small class="text-muted">Si no sube imagen, se mostrará una imagen predeterminada en el catálogo.</small>
-                <br><br>
-            </div>
-            <div class="col">
-                <select name="categoria" class="form-select">
-                        <option value="">Seleccione la Categoria</option>
-                        <option value="Camisetas" {% if datos.categoria == 'Camisetas' %}selected=""{% endif %}>Camisetas</option>
-                        <option value="Pantalones" {% if datos.categoria == 'Pantalones' %}selected=""{% endif %}>Pantalones</option>
-                        <option value="Chaquetas"  {% if datos.categoria == 'Chaquetas' %}selected=""{% endif %}>Chaquetas</option>
-                        <option value="Accesorios"  {% if datos.categoria == 'Accesorios' %}selected=""{% endif %}>Accesorios</option>
-                        <option value="Insumos"  {% if datos.categoria == 'Insumos' %}selected=""{% endif %}>Insumos</option>
-                        <option value="Otros"  {% if datos.categoria == 'Otros' %}selected=""{% endif %}>Otros</option>
-                </select>
-                <br>
-                <input value="{{datos.talla}}" type="text" name="talla" placeholder="Talla del producto"
-                    class="form-control">
-                <br>
-                <input value="{{datos.stock}}" type="number" min="0" max="999" name="stock" placeholder="Stock del producto" class="form-control">
-                <br>
-                <input value="{{datos.precio}}" type="number" min="0" name="precio" placeholder="Precio del producto" class="form-control">
-                <br>
-            </div>
-            <div class="zona_botones">
-                <div class="col-4 d-grid mx-auto">
-                    <button type="submit" class="btn btn-success">Guardar</button>
-                </div>
-            </div>
+            </form>
+
         </div>
-    </form>
-</div>
+    </div>
 </div>
 {% endblock %}

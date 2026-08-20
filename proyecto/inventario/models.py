@@ -108,7 +108,7 @@ class Pago(models.Model):
         return f"Pago #{self.id}"
     
 class Compra(models.Model):
-    proveedor = models.ForeignKey(Proveedor,on_delete=models.CASCADE)
+    proveedor = models.ForeignKey(Proveedor,on_delete=models.PROTECT)
     fecha = models.DateTimeField(auto_now_add=True)
     ESTADOS = (
     ("Pendiente", "PENDIENTE"),
@@ -139,7 +139,7 @@ class DetalleCompra(models.Model):
         return f"{self.producto.nombre}"
 
 class MovimientoInventario(models.Model):
-    producto = models.ForeignKey(Producto,on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto,on_delete=models.PROTECT)
     cantidad = models.IntegerField()
     fecha = models.DateTimeField(auto_now_add=True)
     descripcion = models.CharField(max_length=200)
