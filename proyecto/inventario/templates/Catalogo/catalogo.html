@@ -35,7 +35,7 @@
             <div class="card h-100 shadow-sm">
                 <!-- Imagen del producto -->
                 {% if i.imagen %}
-                <img src="{{ i.imagen.url }}" class="card-img-top" alt="{{ i.nombre }}" style="height:220px; object-fit:cover;">
+                <img src="{{ i.imagen.url }}" class="card-img-top producto-imagen" alt="{{ i.nombre }}">
                 {% else %}
                 <div class="d-flex align-items-center justify-content-center bg-light" style="height:220px;">
                     <div class="text-center text-muted">
