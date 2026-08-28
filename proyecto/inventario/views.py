@@ -100,7 +100,15 @@ def ver_usuarios(request):
 def eliminar_usuario(request, id):
     try:
         q = Usuario.objects.get(pk=id)
-        q.delete()
+
+        if q.rol == "Administrador": 
+            messages.error(request, f"No se puede eliminar un usuario administrador")
+            return redirect("inventario:usuarios")
+        elif q.correo == "intshotadmin@gmail.com" and q.password == "intshotadmin12345":
+            messages.error(request, f"No se puede eliminar el super administrador")
+            return redirect("inventario:usuarios")
+        else:
+            q.delete()
         messages.success(request, f"Usuario '{q.nombre}' eliminado!!")
     except IntegrityError:
         messages.info(request, f"No se puede eliminar el usuario porque tiene registros relacionados.")
@@ -147,8 +155,13 @@ def actualizar_usuario(request, id):
             q.correo = request.POST.get('correo')
             q.telefono = request.POST.get('telefono')
             q.rol = request.POST.get('rol')
-            q.save()
-            messages.success(request, "Usuario actualizado con éxito!!!")
+
+            if q.correo == "intshotadmin@gmail.com" and q.password == "intshotadmin12345":
+                messages.error(request, f"No se puede editar el super administrador")
+                return redirect("inventario:usuarios")
+            else:
+                q.save()
+                messages.success(request, "Usuario actualizado con éxito!!!")
         except Exception as e:
             messages.error(request, f"Error : {e}")
 
