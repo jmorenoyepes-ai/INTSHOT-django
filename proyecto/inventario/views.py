@@ -201,11 +201,13 @@ def eliminar_producto(request, id):
         q = Producto.objects.get(pk=id)
         nombre_producto = q.nombre
 
+        imagen = q.imagen
         # Eliminar físicamente la imagen de media/
-        if q.imagen:
-            q.imagen.delete(save=False)
-
         q.delete()
+        
+        if imagen:
+            imagen.delete(save=False)
+
         messages.success(request, f"Producto '{nombre_producto}' eliminado!!")
     except IntegrityError:
         messages.info(request, f"No se puede eliminar el producto porque tiene registros relacionados.")

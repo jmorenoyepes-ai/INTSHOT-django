@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static l10n %}
 
 {% block cuerpo %}
 <div class="container-lg py-3">
@@ -77,7 +77,7 @@
 
                         <div class="mb-3">
                             <label class="form-label">Precio</label>
-                            <input value="{{ datos.precio }}" type="number" min="0" name="precio" placeholder="Precio del producto" class="form-control" required>
+                            <input value="{{ datos.precio|unlocalize }}" type="number" min="0" name="precio" placeholder="Precio del producto" class="form-control" required>
                         </div>
                     </div>
 
