@@ -1,0 +1,68 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ configuracion.nombre_empresa }}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/estilos.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/notificaciones.css' %}" />
+
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon_io/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon_io/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon_io/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'favicon_io/site.webmanifest' %}">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg" style="background-color: #ffffff; border-bottom: 1px solid #e2e8f0;">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'inventario:landing' %}">
+                {% if configuracion.logo %}
+                <img src="{{ configuracion.logo.url }}" alt="{{ configuracion.nombre_empresa }}" width="36" height="36" style="border-radius:8px;">
+                {% endif %}
+                <span style="font-weight:800; color:#003d9b;">{{ configuracion.nombre_empresa }}</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventario:landing' %}">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventario:catalogo_publico' %}">Catálogo</a>
+                    </li>
+                </ul>
+                <a class="btn btn-primary btn-sm" href="{% url 'inventario:login' %}">Iniciar sesión</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-lg mt-3">
+        {% include 'notificaciones.html' %}
+    </div>
+
+    {% block cuerpo %}
+    {% endblock %}
+
+    <div class="footer">
+        {% include 'footer.html' %}
+    </div>
+
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script src="{% static 'js/librerias.js' %}"></script>
+</body>
+
+</html>

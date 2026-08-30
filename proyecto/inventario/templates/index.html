@@ -8,27 +8,26 @@
     <section class="welcome">
         <div class="texto_bienvenida">
             {% if request.session.logueado %}
-                <h2>Bienvenido:</h2> 
+                <h2>Bienvenido:</h2>
                 {{ request.session.logueado.nombre }}!!
                 <br>
             {% else %}
             No hay sesión.......
             {% endif %}
 
-            <h2>Optimiza la gestión de tu inventario y pedidos con <strong>INTSHOT</strong></h2>
-            <p>
-                Un sistema diseñado especialmente para empresas textiles que buscan
-                controlar insumos, productos terminados y pedidos de manera eficiente.
-            </p>
+            <h2>{{ configuracion.hero_titulo }}</h2>
+            <p>{{ configuracion.hero_texto }}</p>
             <ul>
-                <li>✔ Registra clientes y pedidos fácilmente.</li>
-                <li>✔ Supervisa tu inventario de materiales y prendas.</li>
-                <li>✔ Accede a tus datos desde cualquier dispositivo.</li>
+                {% for i in vinetas %}
+                <li>✔ {{ i.texto }}</li>
+                {% endfor %}
             </ul>
         </div>
 
         <div class="imagen_bienvenida">
-            <img src="{% static 'img/INTSHOT.jpg' %}" alt="INTSHOT">
+            {% if configuracion.hero_imagen %}
+            <img src="{{ configuracion.hero_imagen.url }}" alt="{{ configuracion.nombre_empresa }}">
+            {% endif %}
         </div>
     </section>
 </section>
@@ -36,45 +35,31 @@
 
 <!-- Caracteristicas -->
 <section id="caracteristicas" class="contenedor-principal">
-    <h2 style="color: #003d9b">Caracteristicas</h2>
+    <h2 style="color: #003d9b">{{ configuracion.titulo_caracteristicas }}</h2>
     <br>
     <div class="cards">
+        {% for i in caracteristicas %}
         <div class="card" style="width: 18rem;">
-            <img src="{% static 'img/inventario.jpg' %}" class="card-img-top" alt="...">
+            {% if i.imagen %}
+            <img src="{{ i.imagen.url }}" class="card-img-top" alt="{{ i.titulo }}">
+            {% endif %}
             <div class="card-body">
-                <h5 class="card-title">Inventario</h5>
-                <p class="card-text">Control total productos e insumos con actualizaciones en tiempo real.</p>
+                <h5 class="card-title">{{ i.titulo }}</h5>
+                <p class="card-text">{{ i.texto }}</p>
             </div>
         </div>
-        <div class="card" style="width: 18rem;">
-            <img src="{% static 'img/Clientes.avif' %}" class="card-img-top" alt="...">
-            <div class="card-body">
-                <h5 class="card-title">Pedidos y Clientes</h5>
-                <p class="card-text">Registra, edita y consulta fácilmente los pedidos realizados por tus clientes.</p>
-            </div>
-        </div>
-
-        <div class="card" style="width: 18rem;">
-            <img src="{% static 'img/Reportes.png' %}" class="card-img-top" alt="...">
-            <div class="card-body">
-                <h5 class="card-title">Reportes y Control</h5>
-                <p class="card-text">Genera reportes detallados para mejorar la toma de decisiones y el control interno.
-                </p>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </section>
 
 <!-- Beneficios -->
 <section id="beneficios" class="beneficios">
-    <h2>¿Por qué elegir INTSHOT?</h2>
+    <h2>{{ configuracion.titulo_beneficios }}</h2>
     <ul>
-        <li>🚀 <strong>Rápido</strong> y con una interfaz moderna e intuitiva.</li>
-        <li>🔒 <strong>Seguro</strong>, protege los datos de tu empresa.</li>
-        <li>🧵 <strong>Ideal</strong> para talleres y empresas textiles.</li>
+        {% for i in beneficios %}
+        <li>{{ i.icono }} <strong>{{ i.titulo }}</strong> {{ i.texto }}</li>
+        {% endfor %}
     </ul>
 </section>
-
-<p>{{ mensaje }}</p>
 
 {% endblock %}

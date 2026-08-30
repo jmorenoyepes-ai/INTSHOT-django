@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formato %}
 
 {% block cuerpo %}
 <div class="container-lg">
@@ -66,7 +67,7 @@
                         <span class="badge bg-success">{{ i.estado }}</span>
                     {% endif %}
                 </td>
-                <td>${{ i.total }}</td>
+                <td>{{ i.total|pesos }}</td>
                 <td class="d-flex gap-1">
                     <a href="{% url 'inventario:detalle_compra' i.id %}" class="btn btn-sm btn-outline-secondary">Ver Detalle</a>
 
@@ -85,5 +86,7 @@
             {% endfor %}
         </tbody>
     </table>
+
+    {% include 'paginacion.html' %}
 </div>
 {% endblock %}

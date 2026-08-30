@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formato %}
 
 {% block cuerpo %}
 <div class="container-lg">
@@ -53,7 +54,7 @@
                         <li><span class="badge bg-secondary">{{ i.categoria }}</span></li>
                         <li><strong>Stock:</strong> {{ i.stock }} unidades</li>
                     </ul>
-                    <p class="fs-5 text-success fw-bold">${{ i.precio }}</p>
+                    <p class="fs-5 text-success fw-bold">{{ i.precio|pesos }}</p>
                 </div>
                 <div class="card-footer">
                     <a href="{% url 'inventario:agregar_carrito' i.id %}" class="btn btn-primary w-100">
@@ -68,5 +69,7 @@
         </div>
         {% endfor %}
     </div>
+
+    {% include 'paginacion.html' %}
 </div>
 {% endblock %}

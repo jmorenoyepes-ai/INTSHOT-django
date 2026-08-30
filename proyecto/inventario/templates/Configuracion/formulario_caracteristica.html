@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg py-3">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+
+            {% if datos %}
+                <h1 class="display-4">Actualizar Característica</h1>
+            {% else %}
+                <h1 class="display-4">Crear Característica</h1>
+            {% endif %}
+            <p class="text-muted mb-4">Cada característica es una tarjeta con imagen que se muestra en la página de inicio.</p>
+
+            <form action="" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Título</label>
+                            <input value="{{ datos.titulo }}" type="text" name="titulo" placeholder="Ej: Inventario" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Texto</label>
+                            <textarea name="texto" rows="4" class="form-control" placeholder="Descripción de la característica" required>{{ datos.texto }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Orden</label>
+                            <input value="{{ datos.orden|default:0 }}" type="number" name="orden" min="0" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Imagen</label>
+                            {% if datos.imagen %}
+                            <img src="{{ datos.imagen.url }}" alt="{{ datos.titulo }}" class="img-thumbnail d-block mb-2" style="max-height: 150px;">
+                            {% endif %}
+                            <input type="file" name="imagen" accept="image/*" class="form-control">
+                            <small class="text-muted d-block mt-1">Si no sube imagen, la tarjeta se muestra solo con el texto.</small>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-4 text-center">
+                        <button type="submit" class="btn btn-success px-5">Guardar</button>
+                        <a href="{% url 'inventario:configuracion' %}" class="btn btn-outline-secondary px-5">Volver</a>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

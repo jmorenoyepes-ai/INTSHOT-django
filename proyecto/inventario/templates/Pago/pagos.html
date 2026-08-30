@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formato %}
 
 {% block cuerpo %}
 <div class="container-lg">
@@ -51,7 +52,7 @@
                 <td>{{ i.id }}</td>
                 <td><a href="{% url 'inventario:detalle_pedido' i.pedido.id %}">Pedido #{{ i.pedido.id }}</a></td>
                 <td>{{ i.pedido.usuario.nombre }} {{ i.pedido.usuario.apellido }}</td>
-                <td>${{ i.valor }}</td>
+                <td>{{ i.valor|pesos }}</td>
                 <td>
                     {% if i.metodo == "Efectivo" %}
                         <span class="badge bg-success">{{ i.metodo }}</span>
@@ -70,5 +71,7 @@
             {% endfor %}
         </tbody>
     </table>
+
+    {% include 'paginacion.html' %}
 </div>
 {% endblock %}

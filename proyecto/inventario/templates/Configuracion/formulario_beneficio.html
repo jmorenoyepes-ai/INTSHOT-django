@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg py-3">
+    <div class="card shadow-sm">
+        <div class="card-body p-4">
+
+            {% if datos %}
+                <h1 class="display-4">Actualizar Beneficio</h1>
+            {% else %}
+                <h1 class="display-4">Crear Beneficio</h1>
+            {% endif %}
+            <p class="text-muted mb-4">Los beneficios aparecen en la sección "¿Por qué elegir INTSHOT?" de la página de inicio.</p>
+
+            <form action="" method="post">
+                {% csrf_token %}
+
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <div class="mb-3">
+                            <label class="form-label">Icono</label>
+                            <input value="{{ datos.icono }}" type="text" name="icono" placeholder="🚀" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="col-md-7">
+                        <div class="mb-3">
+                            <label class="form-label">Título</label>
+                            <input value="{{ datos.titulo }}" type="text" name="titulo" placeholder="Ej: Rápido" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Orden</label>
+                            <input value="{{ datos.orden|default:0 }}" type="number" name="orden" min="0" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label class="form-label">Texto</label>
+                            <input value="{{ datos.texto }}" type="text" name="texto" placeholder="Ej: y con una interfaz moderna e intuitiva." class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-4 text-center">
+                        <button type="submit" class="btn btn-success px-5">Guardar</button>
+                        <a href="{% url 'inventario:configuracion' %}" class="btn btn-outline-secondary px-5">Volver</a>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock %}

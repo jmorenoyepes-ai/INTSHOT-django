@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formato %}
 
 {% block cuerpo %}
 <div class="container-lg">
@@ -69,7 +70,7 @@
                         <span class="badge bg-secondary">{{ i.estado }}</span>
                     {% endif %}
                 </td>
-                <td>${{ i.total }}</td>
+                <td>{{ i.total|pesos }}</td>
                 <td>
                     {% if i.pagado %}
                         <span class="badge bg-success">Pagado</span>
@@ -96,7 +97,7 @@
                                         <form action="{% url 'inventario:registrar_pago' i.id %}" method="post">
                                             {% csrf_token %}
                                             <div class="modal-body">
-                                                <p><strong>Total a pagar: ${{ i.total }}</strong></p>
+                                                <p><strong>Total a pagar: {{ i.total|pesos }}</strong></p>
                                                 <label class="form-label">Método de pago</label>
                                                 <select name="metodo" class="form-select" required>
                                                     <option value="">Seleccione...</option>
@@ -142,5 +143,7 @@
             {% endfor %}
         </tbody>
     </table>
+
+    {% include 'paginacion.html' %}
 </div>
 {% endblock %}

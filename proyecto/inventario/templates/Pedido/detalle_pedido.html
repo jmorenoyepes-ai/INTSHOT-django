@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formato %}
 
 {% block cuerpo %}
 <div class="container-lg">
@@ -39,15 +40,15 @@
                 <td>{{ i.producto.color }}</td>
                 <td>{{ i.producto.talla }}</td>
                 <td>{{ i.cantidad }}</td>
-                <td>${{ i.precio_unitario }}</td>
-                <td>${{ i.subtotal }}</td>
+                <td>{{ i.precio_unitario|pesos }}</td>
+                <td>{{ i.subtotal|pesos }}</td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr>
                 <td colspan="6" class="text-end fw-bold">Total:</td>
-                <td class="fw-bold">${{ pedido.total }}</td>
+                <td class="fw-bold">{{ pedido.total|pesos }}</td>
             </tr>
         </tfoot>
     </table>

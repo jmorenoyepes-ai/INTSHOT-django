@@ -3,9 +3,11 @@
 <aside class="app-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
 
     <div class="sidebar-brand">
-        <img src="{% static 'img/Logo-blanco.jpeg' %}" alt="INTSHOT">
+        {% if configuracion.logo %}
+        <img src="{{ configuracion.logo.url }}" alt="{{ configuracion.nombre_empresa }}">
+        {% endif %}
         <div class="sidebar-brand-text">
-            <h1 id="appSidebarLabel">INTSHOT</h1>
+            <h1 id="appSidebarLabel">{{ configuracion.nombre_empresa }}</h1>
         </div>
         <button type="button" class="btn-close d-lg-none ms-auto" data-bs-dismiss="offcanvas" data-bs-target="#appSidebar" aria-label="Cerrar"></button>
     </div>
@@ -80,6 +82,12 @@
             <a class="sidebar-link {% if request.path == url_contabilidad %}active{% endif %}" href="{{ url_contabilidad }}">
                 <span class="material-symbols-outlined">account_balance</span>
                 <span>Contabilidad</span>
+            </a>
+
+            {% url 'inventario:configuracion' as url_configuracion %}
+            <a class="sidebar-link {% if request.path == url_configuracion %}active{% endif %}" href="{{ url_configuracion }}">
+                <span class="material-symbols-outlined">settings</span>
+                <span>Configuración</span>
             </a>
         {% endif %}
 

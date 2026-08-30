@@ -1,2 +1,5 @@
-© 2025 INTSHOT - Todos los derechos reservados ·
-<a href="{% url 'inventario:inicio' %}">INTSHOT</a>
+© 2025 {{ configuracion.nombre_empresa }} - {{ configuracion.texto_footer }}
+
+{% if configuracion.telefono %} &middot; Tel: {{ configuracion.telefono }}{% endif %}
+{% if configuracion.correo %} &middot; {{ configuracion.correo }}{% endif %}
+{% if configuracion.direccion %} &middot; {{ configuracion.direccion }}{% endif %}

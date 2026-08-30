@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formato %}
 
 {% block cuerpo %}
 <div class="container-lg">
@@ -8,6 +9,7 @@
     <p><strong>Fecha:</strong> {{ compra.fecha|date:"d/m/Y H:i" }}</p>
     <br>
     <p class="text-muted">Indica cuántas unidades llegaron realmente de cada producto. Si llegó completo, deja los valores tal como están.</p>
+    <p class="text-muted">En la columna <strong>Nuevo precio</strong> aparece el precio de venta actual. Si el producto llegó más caro o más barato, puedes cambiarlo aquí mismo.</p>
 
     <form action="{% url 'inventario:recibir_compra' compra.id %}" method="post">
         {% csrf_token %}
@@ -17,7 +19,9 @@
                     <th>Producto</th>
                     <th>Cantidad Pedida</th>
                     <th>Cantidad Recibida</th>
-                    <th>Precio Unitario</th>
+                    <th>Precio de Compra</th>
+                    <th>Precio de Venta Actual</th>
+                    <th>Nuevo Precio de Venta</th>
                 </tr>
             </thead>
             <tbody class="table-group-divider">
@@ -35,11 +39,22 @@
                                style="width: 90px;"
                                required>
                     </td>
-                    <td>${{ i.precio_unitario }}</td>
+                    <td>{{ i.precio_unitario|pesos }}</td>
+                    <td>{{ i.producto.precio|pesos }}</td>
+                    <td>
+                        <input type="number"
+                               name="nuevo_precio_{{ i.id }}"
+                               value="{{ i.producto.precio|floatformat:0 }}"
+                               min="0"
+                               step="any"
+                               class="form-control form-control-sm"
+                               style="width: 130px;"
+                               required>
+                    </td>
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="4" class="text-center text-muted">No hay productos en esta compra.</td>
+                    <td colspan="6" class="text-center text-muted">No hay productos en esta compra.</td>
                 </tr>
                 {% endfor %}
             </tbody>

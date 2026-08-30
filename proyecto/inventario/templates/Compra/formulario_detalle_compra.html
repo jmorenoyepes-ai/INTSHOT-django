@@ -13,15 +13,15 @@
                 <select name="producto" class="form-select" required>
                     <option value="">Seleccione el producto</option>
                     {% for p in productos %}
-                        <option value="{{ p.id }}">{{ p.nombre }} - {{ p.talla }} - {{ p.color }}</option>
+                        <option value="{{ p.id }}" {% if datos.producto == p.id|stringformat:"s" %}selected{% endif %}>{{ p.nombre }} - {{ p.talla }} - {{ p.color }}</option>
                     {% endfor %}
                 </select>
                 <br>
                 <label class="form-label">Cantidad</label>
-                <input type="number" name="cantidad" min="1" placeholder="Cantidad" class="form-control" required>
+                <input value="{{ datos.cantidad }}" type="number" name="cantidad" min="1" placeholder="Cantidad" class="form-control" required>
                 <br>
                 <label class="form-label">Precio unitario</label>
-                <input type="number" name="precio_unitario" min="0" step="0.01" placeholder="Precio unitario" class="form-control" required>
+                <input value="{{ datos.precio_unitario }}" type="number" name="precio_unitario" min="0" step="any" placeholder="Precio unitario" class="form-control" required>
                 <br>
             </div>
             <div class="zona_botones">

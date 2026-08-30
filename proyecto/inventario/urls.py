@@ -7,6 +7,8 @@ from .views import LogoutView
 app_name = "inventario"
 urlpatterns = [
     path('', views.landing, name="landing"),
+    path('catalogo_publico/', views.catalogo_publico, name="catalogo_publico"),
+    path('comprar_producto/<int:id>/', views.comprar_producto, name="comprar_producto"),
     path('login/', views.login, name="login"),
     path('logout/', views.logout, name="logout"),
     path('registrarse/', views.registrarse, name="registrarse"),
@@ -64,6 +66,22 @@ urlpatterns = [
 
     # módulo contabilidad
     path('contabilidad/', views.ver_contabilidad, name="contabilidad"),
+
+    # módulo configuración de la página de inicio
+    path('configuracion/', views.ver_configuracion, name="configuracion"),
+    path('actualizar_configuracion/', views.actualizar_configuracion, name="actualizar_configuracion"),
+
+    path('crear_vineta/', views.crear_vineta, name="crear_vineta"),
+    path('actualizar_vineta/<int:id>/', views.actualizar_vineta, name="actualizar_vineta"),
+    path('eliminar_vineta/<int:id>/', views.eliminar_vineta, name="eliminar_vineta"),
+
+    path('crear_caracteristica/', views.crear_caracteristica, name="crear_caracteristica"),
+    path('actualizar_caracteristica/<int:id>/', views.actualizar_caracteristica, name="actualizar_caracteristica"),
+    path('eliminar_caracteristica/<int:id>/', views.eliminar_caracteristica, name="eliminar_caracteristica"),
+
+    path('crear_beneficio/', views.crear_beneficio, name="crear_beneficio"),
+    path('actualizar_beneficio/<int:id>/', views.actualizar_beneficio, name="actualizar_beneficio"),
+    path('eliminar_beneficio/<int:id>/', views.eliminar_beneficio, name="eliminar_beneficio"),
 
     #autenticacion por tokens
     path('api/auth/logout/', LogoutView.as_view(), name='api_logout'),

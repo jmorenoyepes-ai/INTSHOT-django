@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load formato %}
 
 {% block cuerpo %}
 <div class="container-lg">
@@ -12,7 +13,7 @@
                 <div class="card-body">
                     <span class="material-symbols-outlined" style="color:#16a34a;">trending_up</span>
                     <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Total Ingresos</p>
-                    <p class="card-text fs-4 fw-bold mb-0" style="color:#16a34a;">${{ total_ingresos }}</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:#16a34a;">{{ total_ingresos|pesos }}</p>
                 </div>
             </div>
         </div>
@@ -21,7 +22,7 @@
                 <div class="card-body">
                     <span class="material-symbols-outlined" style="color:#ef4444;">trending_down</span>
                     <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Total Egresos</p>
-                    <p class="card-text fs-4 fw-bold mb-0" style="color:#ef4444;">${{ total_egresos }}</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:#ef4444;">{{ total_egresos|pesos }}</p>
                 </div>
             </div>
         </div>
@@ -30,7 +31,7 @@
                 <div class="card-body">
                     <span class="material-symbols-outlined" style="color:{% if balance >= 0 %}#0052cc{% else %}#f59e0b{% endif %};">account_balance_wallet</span>
                     <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Balance</p>
-                    <p class="card-text fs-4 fw-bold mb-0" style="color:{% if balance >= 0 %}#0052cc{% else %}#f59e0b{% endif %};">${{ balance }}</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:{% if balance >= 0 %}#0052cc{% else %}#f59e0b{% endif %};">{{ balance|pesos }}</p>
                 </div>
             </div>
         </div>
@@ -86,7 +87,7 @@
                     {% endif %}
                 </td>
                 <td>{{ i.descripcion }}</td>
-                <td>${{ i.valor }}</td>
+                <td>{{ i.valor|pesos }}</td>
             </tr>
             {% empty %}
             <tr>
@@ -95,5 +96,7 @@
             {% endfor %}
         </tbody>
     </table>
+
+    {% include 'paginacion.html' %}
 </div>
 {% endblock %}

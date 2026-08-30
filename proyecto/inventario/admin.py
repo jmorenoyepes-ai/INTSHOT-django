@@ -60,3 +60,19 @@ class MovimientoContableAdmin(admin.ModelAdmin):
 
 
 
+
+@admin.register(Configuracion)
+class ConfiguracionAdmin(admin.ModelAdmin):
+    list_display = ["id", "nombre_empresa", "hero_titulo"]
+
+@admin.register(Vineta)
+class VinetaAdmin(admin.ModelAdmin):
+    list_display = ["id", "orden", "texto"]
+
+@admin.register(Caracteristica)
+class CaracteristicaAdmin(admin.ModelAdmin):
+    list_display = ["id", "orden", "titulo", "texto"]
+
+@admin.register(Beneficio)
+class BeneficioAdmin(admin.ModelAdmin):
+    list_display = ["id", "orden", "icono", "titulo", "texto"]

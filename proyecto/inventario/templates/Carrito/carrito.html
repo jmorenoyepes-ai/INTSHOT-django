@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static l10n %}
+{% load formato %}
 
 {% block cuerpo %}
 <div class="container-lg">
@@ -24,7 +25,7 @@
                 <td>{{ i.producto.nombre }}</td>
                 <td>{{ i.producto.color }}</td>
                 <td>{{ i.producto.talla }}</td>
-                <td>${{ i.producto.precio }}</td>
+                <td>{{ i.producto.precio|pesos }}</td>
                 <td>
                     <form action="{% url 'inventario:actualizar_carrito' i.id %}" method="post" class="d-flex gap-1">
                         {% csrf_token %}
@@ -32,7 +33,7 @@
                         <button type="submit" class="btn btn-sm btn-outline-secondary">✓</button>
                     </form>
                 </td>
-                <td>${{ i.subtotal }}</td>
+                <td>{{ i.subtotal|pesos }}</td>
                 <td>
                     <button
                         onclick="modal_eliminar('Carrito', 'Está seguro de eliminar <strong>{{ i.producto.nombre }}</strong> del carrito?', `{% url 'inventario:eliminar_carrito' i.id %}`);"
@@ -45,7 +46,7 @@
         <tfoot>
             <tr>
                 <td colspan="5" class="text-end fw-bold">Total:</td>
-                <td class="fw-bold">${{ total }}</td>
+                <td class="fw-bold">{{ total|pesos }}</td>
                 <td></td>
             </tr>
         </tfoot>
@@ -53,7 +54,23 @@
 
     <div class="d-flex justify-content-end gap-2 mt-3">
         <a href="{% url 'inventario:catalogo' %}" class="btn btn-outline-secondary">Seguir comprando</a>
-        <a href="{% url 'inventario:crear_pedido' %}" class="btn btn-success">Confirmar Pedido</a>
+
+        <!-- Se envía la información de los productos tal como el cliente la está viendo.
+             Así, si el administrador elimina o edita un producto mientras el cliente
+             compra, se le puede informar exactamente qué cambió antes de generar el pedido. -->
+        <form action="{% url 'inventario:crear_pedido' %}" method="post">
+            {% csrf_token %}
+            {% for i in datos %}
+            <input type="hidden" name="item_visto" value="{{ i.id }}">
+            <input type="hidden" name="nombre_visto" value="{{ i.producto.nombre }}">
+            <input type="hidden" name="color_visto" value="{{ i.producto.color }}">
+            <input type="hidden" name="descripcion_vista" value="{{ i.producto.descripcion }}">
+            <input type="hidden" name="talla_vista" value="{{ i.producto.talla }}">
+            <input type="hidden" name="categoria_vista" value="{{ i.producto.categoria }}">
+            <input type="hidden" name="precio_visto" value="{{ i.producto.precio|unlocalize }}">
+            {% endfor %}
+            <button type="submit" class="btn btn-success">Confirmar Pedido</button>
+        </form>
     </div>
 
     {% else %}

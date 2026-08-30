@@ -1,0 +1,237 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block cuerpo %}
+<div class="container-lg py-3">
+
+    <h1 class="display-4">Configuración de la página de inicio</h1>
+    <p class="text-muted mb-4">Desde aquí puedes cambiar los textos, las imágenes y las secciones que ven las personas en la página de inicio.</p>
+
+    <!-- Datos generales y sección principal -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h4 class="mb-3">Datos generales</h4>
+
+            <form action="{% url 'inventario:actualizar_configuracion' %}" method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Nombre de la empresa</label>
+                            <input value="{{ datos.nombre_empresa }}" type="text" name="nombre_empresa" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Logo</label>
+                            {% if datos.logo %}
+                            <img src="{{ datos.logo.url }}" alt="Logo" class="img-thumbnail d-block mb-2" style="max-height: 100px;">
+                            {% endif %}
+                            <input type="file" name="logo" accept="image/*" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Teléfono de contacto</label>
+                            <input value="{{ datos.telefono }}" type="text" name="telefono" placeholder="3001234567" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Correo de contacto</label>
+                            <input value="{{ datos.correo }}" type="email" name="correo" placeholder="contacto@empresa.com" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Dirección</label>
+                            <input value="{{ datos.direccion }}" type="text" name="direccion" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Texto del pie de página</label>
+                            <input value="{{ datos.texto_footer }}" type="text" name="texto_footer" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h4 class="mb-3">Sección principal</h4>
+
+                        <div class="mb-3">
+                            <label class="form-label">Título principal</label>
+                            <input value="{{ datos.hero_titulo }}" type="text" name="hero_titulo" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Texto principal</label>
+                            <textarea name="hero_texto" rows="4" class="form-control" required>{{ datos.hero_texto }}</textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Imagen principal</label>
+                            {% if datos.hero_imagen %}
+                            <img src="{{ datos.hero_imagen.url }}" alt="Imagen principal" class="img-thumbnail d-block mb-2" style="max-height: 120px;">
+                            {% endif %}
+                            <input type="file" name="hero_imagen" accept="image/*" class="form-control">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Título de la sección Catálogo</label>
+                            <input value="{{ datos.titulo_catalogo }}" type="text" name="titulo_catalogo" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Título de la sección Características</label>
+                            <input value="{{ datos.titulo_caracteristicas }}" type="text" name="titulo_caracteristicas" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Título de la sección Beneficios</label>
+                            <input value="{{ datos.titulo_beneficios }}" type="text" name="titulo_beneficios" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="col-12 mt-3 text-center">
+                        <button type="submit" class="btn btn-success px-5">Guardar cambios</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Viñetas de la sección principal -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="page-header">
+                <h4>Viñetas de la sección principal</h4>
+                <a class="btn btn-success" href="{% url 'inventario:crear_vineta' %}">
+                    <span class="material-symbols-outlined" style="font-size:18px; vertical-align:-4px;">add</span>
+                    Agregar Viñeta
+                </a>
+            </div>
+
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Orden</th>
+                        <th>Texto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    {% for i in vinetas %}
+                    <tr>
+                        <td>{{ i.orden }}</td>
+                        <td>{{ i.texto }}</td>
+                        <td>
+                            <button
+                                onclick="modal_eliminar('Viñeta', 'Está seguro de eliminar la viñeta <strong>{{ i.texto }}</strong>?', `{% url 'inventario:eliminar_vineta' i.id %}`);"
+                                type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#confirmacion">Eliminar</button>
+
+                            <a href="{% url 'inventario:actualizar_vineta' i.id %}" class="btn btn-info btn-sm" type="button">Editar</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center text-muted">No hay viñetas registradas.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Características -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="page-header">
+                <h4>Características</h4>
+                <a class="btn btn-success" href="{% url 'inventario:crear_caracteristica' %}">
+                    <span class="material-symbols-outlined" style="font-size:18px; vertical-align:-4px;">add</span>
+                    Agregar Característica
+                </a>
+            </div>
+
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Imagen</th>
+                        <th>Orden</th>
+                        <th>Título</th>
+                        <th>Texto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    {% for i in caracteristicas %}
+                    <tr>
+                        <td>
+                            {% if i.imagen %}
+                            <img src="{{ i.imagen.url }}" alt="{{ i.titulo }}" style="height:50px; width:50px; object-fit:cover; border-radius:6px;">
+                            {% else %}
+                            <span class="text-muted small">Sin imagen</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ i.orden }}</td>
+                        <td>{{ i.titulo }}</td>
+                        <td>{{ i.texto }}</td>
+                        <td>
+                            <button
+                                onclick="modal_eliminar('Característica', 'Está seguro de eliminar la característica <strong>{{ i.titulo }}</strong>?', `{% url 'inventario:eliminar_caracteristica' i.id %}`);"
+                                type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#confirmacion">Eliminar</button>
+
+                            <a href="{% url 'inventario:actualizar_caracteristica' i.id %}" class="btn btn-info btn-sm" type="button">Editar</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center text-muted">No hay características registradas.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Beneficios -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="page-header">
+                <h4>Beneficios</h4>
+                <a class="btn btn-success" href="{% url 'inventario:crear_beneficio' %}">
+                    <span class="material-symbols-outlined" style="font-size:18px; vertical-align:-4px;">add</span>
+                    Agregar Beneficio
+                </a>
+            </div>
+
+            <table class="table table-sm table-hover">
+                <thead>
+                    <tr>
+                        <th>Icono</th>
+                        <th>Orden</th>
+                        <th>Título</th>
+                        <th>Texto</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="table-group-divider">
+                    {% for i in beneficios %}
+                    <tr>
+                        <td>{{ i.icono }}</td>
+                        <td>{{ i.orden }}</td>
+                        <td>{{ i.titulo }}</td>
+                        <td>{{ i.texto }}</td>
+                        <td>
+                            <button
+                                onclick="modal_eliminar('Beneficio', 'Está seguro de eliminar el beneficio <strong>{{ i.titulo }}</strong>?', `{% url 'inventario:eliminar_beneficio' i.id %}`);"
+                                type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                                data-bs-target="#confirmacion">Eliminar</button>
+
+                            <a href="{% url 'inventario:actualizar_beneficio' i.id %}" class="btn btn-info btn-sm" type="button">Editar</a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="5" class="text-center text-muted">No hay beneficios registrados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
