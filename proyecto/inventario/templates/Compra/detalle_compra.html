@@ -9,16 +9,16 @@
     <p><strong>Fecha:</strong> {{ compra.fecha|date:"d/m/Y H:i" }}</p>
     <p><strong>Estado:</strong>
         {% if compra.estado == "Pendiente" %}
-            <span class="badge bg-warning text-dark">{{ compra.estado }}</span>
+        <span class="badge bg-warning text-dark">{{ compra.estado }}</span>
         {% elif compra.estado == "Recibida" %}
-            <span class="badge bg-success">{{ compra.estado }}</span>
+        <span class="badge bg-success">{{ compra.estado }}</span>
         {% else %}
-            <span class="badge bg-info text-dark">{{ compra.estado }}</span>
+        <span class="badge bg-info text-dark">{{ compra.estado }}</span>
         {% endif %}
     </p>
 
     {% if compra.estado == "Pendiente" %}
-        <a href="{% url 'inventario:agregar_detalle_compra' compra.id %}" class="btn btn-primary mb-3">Agregar Producto</a>
+    <a href="{% url 'inventario:agregar_detalle_compra' compra.id %}" class="btn btn-primary mb-3">Agregar Producto</a>
     {% endif %}
 
     <table class="table table-sm table-hover">
@@ -47,11 +47,10 @@
                 <td>{{ i.cantidad }}</td>
                 {% if compra.estado != "Pendiente" %}
                 <td>
-                    {% if i.cantidad_recibida < i.cantidad %}
-                        <span class="text-danger fw-bold">{{ i.cantidad_recibida }}</span>
-                    {% else %}
-                        {{ i.cantidad_recibida }}
-                    {% endif %}
+                    {% if i.cantidad_recibida < i.cantidad %} <span class="text-danger fw-bold">{{ i.cantidad_recibida }}</span>
+                        {% else %}
+                            {{ i.cantidad_recibida }}
+                        {% endif %}
                 </td>
                 {% endif %}
                 <td>{{ i.precio_unitario|pesos }}</td>
@@ -73,17 +72,44 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="{% if compra.estado == 'Pendiente' %}5{% else %}6{% endif %}" class="text-end fw-bold">Total:</td>
-                <td class="fw-bold">{{ compra.total|pesos }}</td>
-                {% if compra.estado == "Pendiente" %}<td></td>{% endif %}
+                <td colspan="{% if compra.estado == 'Pendiente' %}5{% else %}6{% endif %}" class="text-end fw-bold">
+                    Subtotal:
+                </td>
+                <td class="fw-bold">
+                    {{ compra.total|pesos }}
+                </td>
+
+                {% if compra.estado == "Pendiente" %}
+                <td></td>
+                {% endif %}
             </tr>
+
+            {% if compra.estado != "Pendiente" %}
+            <tr>
+                <td colspan="6" class="text-end fw-bold text-danger">
+                    Descuento:
+                </td>
+                <td class="fw-bold text-danger">
+                    - {{ compra.descuento|pesos }}
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="6" class="text-end fw-bold">
+                    Total:
+                </td>
+                <td class="fw-bold">
+                    {{ compra.total_recibido|pesos }}
+                </td>
+            </tr>
+            {% endif %}
         </tfoot>
     </table>
 
     <div class="d-flex gap-2">
         <a href="{% url 'inventario:compras' %}" class="btn btn-outline-secondary">Volver a Compras</a>
         {% if compra.estado == "Pendiente" %}
-            <a href="{% url 'inventario:recibir_compra' compra.id %}" class="btn btn-success">Recibir Compra</a>
+        <a href="{% url 'inventario:recibir_compra' compra.id %}" class="btn btn-success">Recibir Compra</a>
         {% endif %}
     </div>
 </div>

@@ -108,19 +108,32 @@ class Pago(models.Model):
         return f"Pago #{self.id}"
     
 class Compra(models.Model):
-    proveedor = models.ForeignKey(Proveedor,on_delete=models.PROTECT)
+    proveedor = models.ForeignKey(Proveedor, on_delete=models.PROTECT)
     fecha = models.DateTimeField(auto_now_add=True)
+
     ESTADOS = (
-    ("Pendiente", "PENDIENTE"),
-    ("Recibida", "RECIBIDA"),
-    ("Recibida parcialmente", "RECIBIDA PARCIALMENTE"),
+        ("Pendiente", "PENDIENTE"),
+        ("Recibida", "RECIBIDA"),
+        ("Recibida parcialmente", "RECIBIDA PARCIALMENTE"),
     )
 
-    estado = models.CharField(max_length=30,choices=ESTADOS,default="Pendiente")
+    estado = models.CharField(max_length=30, choices=ESTADOS, default="Pendiente")
 
     def total(self):
         detalles = DetalleCompra.objects.filter(compra=self)
         return sum(d.subtotal() for d in detalles)
+
+    def descuento(self):
+        detalles = DetalleCompra.objects.filter(compra=self)
+
+        return sum(
+            (d.cantidad - d.cantidad_recibida) * d.precio_unitario
+            for d in detalles
+            if d.cantidad_recibida < d.cantidad
+        )
+
+    def total_recibido(self):
+        return self.total() - self.descuento()
 
     def __str__(self):
         return f"Compra #{self.id}"
