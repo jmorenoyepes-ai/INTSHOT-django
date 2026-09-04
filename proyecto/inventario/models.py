@@ -82,7 +82,7 @@ class Pedido(models.Model):
     
 class DetallePedido(models.Model):
     pedido = models.ForeignKey(Pedido,on_delete=models.CASCADE)
-    producto = models.ForeignKey(Producto,on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto,on_delete=models.PROTECT)
     cantidad = models.IntegerField()
     precio_unitario = models.DecimalField(max_digits=10,decimal_places=2)
 
@@ -127,7 +127,7 @@ class Compra(models.Model):
     
 class DetalleCompra(models.Model):
     compra = models.ForeignKey(Compra,on_delete=models.CASCADE)
-    producto = models.ForeignKey(Producto,on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto,on_delete=models.PROTECT)
     cantidad = models.IntegerField()
     cantidad_recibida = models.IntegerField(default=0)
     precio_unitario = models.DecimalField(max_digits=10,decimal_places=2)
