@@ -27,7 +27,8 @@
         <div class="container-fluid px-4">
             <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'inventario:landing' %}">
                 {% if configuracion.logo %}
-                <img src="{{ configuracion.logo.url }}" alt="{{ configuracion.nombre_empresa }}" width="36" height="36" style="border-radius:8px;">
+                <img src="{{ configuracion.logo.url }}" alt="{{ configuracion.nombre_empresa }}" width="36" height="36"
+                    style="border-radius:8px;">
                 {% endif %}
                 <span style="font-weight:800; color:#003d9b;">{{ configuracion.nombre_empresa }}</span>
             </a>
@@ -54,8 +55,10 @@
         {% include 'notificaciones.html' %}
     </div>
 
-    {% block cuerpo %}
-    {% endblock %}
+    <main class="contenido-publico">
+        {% block cuerpo %}
+        {% endblock %}
+    </main>
 
     <div class="footer">
         {% include 'footer.html' %}
