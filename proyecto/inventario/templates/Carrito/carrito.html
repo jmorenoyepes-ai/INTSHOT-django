@@ -3,81 +3,154 @@
 {% load formato %}
 
 {% block cuerpo %}
-<div class="container-lg">
-    <h1 class="display-4" style="text-align: center;">Mi Carrito</h1>
-    <br>
-    {% if datos %}
-    <table class="table table-sm table-hover">
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Color</th>
-                <th>Talla</th>
-                <th>Precio unitario</th>
-                <th>Cantidad</th>
-                <th>Subtotal</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody class="table-group-divider">
+<div class="page-header">
+    <div>
+        <h1 class="display-4">Mi Carrito</h1>
+        <p class="text-muted small mb-0">Revisa tus productos antes de confirmar el pedido.</p>
+    </div>
+</div>
+
+{% if datos %}
+<div class="row g-4">
+
+    <!-- Lista de productos del carrito -->
+    <div class="col-lg-8">
+        <div class="carrito-lista">
             {% for i in datos %}
-            <tr>
-                <td>{{ i.producto.nombre }}</td>
-                <td>{{ i.producto.color }}</td>
-                <td>{{ i.producto.talla }}</td>
-                <td>{{ i.producto.precio|pesos }}</td>
-                <td>
-                    <form action="{% url 'inventario:actualizar_carrito' i.id %}" method="post" class="d-flex gap-1">
-                        {% csrf_token %}
-                        <input type="number" name="cantidad" value="{{ i.cantidad }}" min="1" max="{{ i.producto.stock }}" class="form-control form-control-sm" style="width:70px;">
-                        <button type="submit" class="btn btn-sm btn-outline-secondary">✓</button>
-                    </form>
-                </td>
-                <td>{{ i.subtotal|pesos }}</td>
-                <td>
+            <div class="carrito-item">
+
+                <div class="carrito-item-imagen">
+                    {% if i.producto.imagen %}
+                    <img src="{{ i.producto.imagen.url }}" alt="{{ i.producto.nombre }}">
+                    {% else %}
+                    <img src="{% static 'img/Logo-INTSHOT.jpg' %}" alt="Sin imagen" style="opacity:.35;">
+                    {% endif %}
+                </div>
+
+                <div class="carrito-item-info">
+                    <p class="carrito-item-nombre">{{ i.producto.nombre }}</p>
+                    <p class="carrito-item-meta">
+                        {% if i.producto.color %}{{ i.producto.color }}{% endif %}{% if i.producto.color and i.producto.talla %} &middot; {% endif %}{% if i.producto.talla %}Talla {{ i.producto.talla }}{% endif %}
+                    </p>
+                    <p class="carrito-item-precio-unitario">{{ i.producto.precio|pesos }} c/u</p>
+
                     <button
                         onclick="modal_eliminar('Carrito', 'Está seguro de eliminar <strong>{{ i.producto.nombre }}</strong> del carrito?', `{% url 'inventario:eliminar_carrito' i.id %}`);"
-                        type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
-                        data-bs-target="#confirmacion">Eliminar</button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="5" class="text-end fw-bold">Total:</td>
-                <td class="fw-bold">{{ total|pesos }}</td>
-                <td></td>
-            </tr>
-        </tfoot>
-    </table>
+                        type="button" class="carrito-item-eliminar" data-bs-toggle="modal"
+                        data-bs-target="#confirmacion">
+                        <span class="material-symbols-outlined">delete</span>
+                        Eliminar
+                    </button>
+                </div>
 
-    <div class="d-flex justify-content-end gap-2 mt-3">
-        <a href="{% url 'inventario:catalogo' %}" class="btn btn-outline-secondary">Seguir comprando</a>
+                <!-- Cambiar la cantidad. El nombre del campo y la URL son los mismos
+                     de siempre, solo cambia la forma de mostrarlo. -->
+                <form action="{% url 'inventario:actualizar_carrito' i.id %}" method="post" class="carrito-item-cantidad">
+                    {% csrf_token %}
+                    <div class="cantidad-stepper">
+                        <button type="button" class="cantidad-btn" onclick="cambiar_cantidad(this, -1)" aria-label="Quitar una unidad">−</button>
+                        <input type="number" name="cantidad" value="{{ i.cantidad }}" min="1" max="{{ i.producto.stock }}"
+                            class="cantidad-input" aria-label="Cantidad de {{ i.producto.nombre }}">
+                        <button type="button" class="cantidad-btn" onclick="cambiar_cantidad(this, 1)" aria-label="Agregar una unidad">+</button>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-outline-secondary w-100 mt-2">Actualizar</button>
+                </form>
 
-        <!-- Se envía la información de los productos tal como el cliente la está viendo.
-             Así, si el administrador elimina o edita un producto mientras el cliente
-             compra, se le puede informar exactamente qué cambió antes de generar el pedido. -->
-        <form action="{% url 'inventario:crear_pedido' %}" method="post">
-            {% csrf_token %}
-            {% for i in datos %}
-            <input type="hidden" name="item_visto" value="{{ i.id }}">
-            <input type="hidden" name="nombre_visto" value="{{ i.producto.nombre }}">
-            <input type="hidden" name="color_visto" value="{{ i.producto.color }}">
-            <input type="hidden" name="descripcion_vista" value="{{ i.producto.descripcion }}">
-            <input type="hidden" name="talla_vista" value="{{ i.producto.talla }}">
-            <input type="hidden" name="categoria_vista" value="{{ i.producto.categoria }}">
-            <input type="hidden" name="precio_visto" value="{{ i.producto.precio|unlocalize }}">
+                <div class="carrito-item-subtotal">
+                    <span class="carrito-item-subtotal-label">Subtotal</span>
+                    <span class="carrito-item-subtotal-valor">{{ i.subtotal|pesos }}</span>
+                </div>
+
+            </div>
             {% endfor %}
-            <button type="submit" class="btn btn-success">Confirmar Pedido</button>
-        </form>
+        </div>
+
+        <a href="{% url 'inventario:catalogo' %}" class="btn btn-outline-secondary mt-3">
+            <span class="material-symbols-outlined" style="font-size:18px; vertical-align:-4px;">arrow_back</span>
+            Seguir comprando
+        </a>
     </div>
 
-    {% else %}
-    <div class="text-center mt-5">
-        <p class="text-muted fs-5">Tu carrito está vacío.</p>
-        <a href="{% url 'inventario:catalogo' %}" class="btn btn-primary">Ver catálogo</a>
+    <!-- Resumen de la compra -->
+    <div class="col-lg-4">
+        <div class="resumen-compra">
+            <h2 class="resumen-compra-title">Resumen de compra</h2>
+
+            <div class="resumen-compra-fila">
+                <span>Productos</span>
+                <span>{{ datos|length }}</span>
+            </div>
+
+            <div class="resumen-compra-fila">
+                <span>Subtotal</span>
+                <span>{{ total|pesos }}</span>
+            </div>
+
+            <hr>
+
+            <div class="resumen-compra-fila resumen-compra-total">
+                <span>Total</span>
+                <span>{{ total|pesos }}</span>
+            </div>
+
+            <!-- Se envía la información de los productos tal como el cliente la está viendo.
+                 Así, si el administrador elimina o edita un producto mientras el cliente
+                 compra, se le puede informar exactamente qué cambió antes de generar el pedido. -->
+            <form action="{% url 'inventario:crear_pedido' %}" method="post">
+                {% csrf_token %}
+                {% for i in datos %}
+                <input type="hidden" name="item_visto" value="{{ i.id }}">
+                <input type="hidden" name="nombre_visto" value="{{ i.producto.nombre }}">
+                <input type="hidden" name="color_visto" value="{{ i.producto.color }}">
+                <input type="hidden" name="descripcion_vista" value="{{ i.producto.descripcion }}">
+                <input type="hidden" name="talla_vista" value="{{ i.producto.talla }}">
+                <input type="hidden" name="categoria_vista" value="{{ i.producto.categoria }}">
+                <input type="hidden" name="precio_visto" value="{{ i.producto.precio|unlocalize }}">
+                {% endfor %}
+                <button type="submit" class="btn btn-success w-100 mt-3">
+                    <span class="material-symbols-outlined" style="font-size:18px; vertical-align:-4px;">task_alt</span>
+                    Confirmar Pedido
+                </button>
+            </form>
+        </div>
     </div>
-    {% endif %}
+
 </div>
+
+{% else %}
+<div class="carrito-vacio">
+    <span class="material-symbols-outlined">shopping_cart</span>
+    <p class="fs-5 text-muted mt-2">Tu carrito está vacío.</p>
+    <a href="{% url 'inventario:catalogo' %}" class="btn btn-primary">Ver catálogo</a>
+</div>
+{% endif %}
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+    // Sube o baja la cantidad del producto sin pasarse del stock disponible.
+    // El valor sigue viajando en el mismo campo "cantidad" del formulario.
+    function cambiar_cantidad(boton, cambio) {
+        const campo = boton.parentElement.querySelector('.cantidad-input');
+        const minimo = parseInt(campo.min, 10) || 1;
+        const maximo = parseInt(campo.max, 10);
+
+        let valor = parseInt(campo.value, 10);
+        if (isNaN(valor)) {
+            valor = minimo;
+        }
+
+        valor = valor + cambio;
+
+        if (valor < minimo) {
+            valor = minimo;
+        }
+        if (!isNaN(maximo) && valor > maximo) {
+            valor = maximo;
+        }
+
+        campo.value = valor;
+    }
+</script>
 {% endblock %}

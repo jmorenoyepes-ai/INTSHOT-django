@@ -76,6 +76,10 @@
 
     <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
     <script src="{% static 'js/librerias.js' %}"></script>
+
+    <!-- Cada página puede cargar aquí los scripts que solo ella necesita -->
+    {% block scripts %}
+    {% endblock %}
 </body>
 
 </html>

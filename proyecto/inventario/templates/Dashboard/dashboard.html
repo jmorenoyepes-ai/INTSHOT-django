@@ -1,0 +1,538 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load formato %}
+
+{% block cuerpo %}
+
+<div class="page-header">
+    <div>
+        <h1 class="display-4">Panel de control</h1>
+        <p class="text-muted small mb-0">Resumen de ventas, inventario y pedidos tomado directamente de la base de datos.</p>
+    </div>
+</div>
+
+
+<!-- ==================== TARJETAS DE RESUMEN ====================
+     Las dos primeras tarjetas muestran dinero, así que solo se le
+     arman al administrador. Al empleado le quedan las otras dos,
+     cada una ocupando la mitad del ancho.                        -->
+<div class="row g-3">
+
+    {% if es_administrador %}
+    <div class="col-md-6 col-xl-3">
+        <div class="dash-kpi">
+            <div class="dash-kpi-icon dash-kpi-icon-primary">
+                <span class="material-symbols-outlined">payments</span>
+            </div>
+            <p class="dash-kpi-label">Ventas totales</p>
+            <p class="dash-kpi-value">{{ ventas_totales|pesos }}</p>
+            <p class="dash-kpi-nota">Suma de todos los pagos registrados</p>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-xl-3">
+        <div class="dash-kpi">
+            <div class="dash-kpi-icon dash-kpi-icon-info">
+                <span class="material-symbols-outlined">inventory_2</span>
+            </div>
+            <p class="dash-kpi-label">Valor del inventario</p>
+            <p class="dash-kpi-value">{{ valor_inventario|pesos }}</p>
+            <p class="dash-kpi-nota">{{ total_productos }} producto{{ total_productos|pluralize }} &middot; {{ total_unidades }} unidades</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="col-md-6 {% if es_administrador %}col-xl-3{% else %}col-xl-6{% endif %}">
+        <div class="dash-kpi">
+            <div class="dash-kpi-icon dash-kpi-icon-warning">
+                <span class="material-symbols-outlined">local_shipping</span>
+            </div>
+            <p class="dash-kpi-label">Pedidos pendientes</p>
+            <p class="dash-kpi-value">{{ pedidos_pendientes }}</p>
+            <p class="dash-kpi-nota">
+                <a href="{% url 'inventario:pedidos' %}">Ver pedidos</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="col-md-6 {% if es_administrador %}col-xl-3{% else %}col-xl-6{% endif %}">
+        <div class="dash-kpi">
+            <div class="dash-kpi-icon dash-kpi-icon-danger">
+                <span class="material-symbols-outlined">warning</span>
+            </div>
+            <p class="dash-kpi-label">Productos con stock bajo</p>
+            <p class="dash-kpi-value">{{ stock_bajo }}</p>
+            <p class="dash-kpi-nota">
+                {{ limite_stock_bajo }} unidades o menos
+                {% if es_administrador %}
+                &middot; <a href="{% url 'inventario:configuracion' %}">cambiar límite</a>
+                {% endif %}
+            </p>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ==================== INGRESOS + CATEGORÍAS ==================== -->
+<div class="row g-3 mt-1">
+
+    <div class="col-lg-8">
+        <div class="card h-100 dash-card-flex">
+            <div class="card-body">
+                <div class="dash-card-header">
+                    <h2 class="dash-card-title">Ingresos de los últimos 6 meses</h2>
+                    <span class="dash-card-nota">Pagos recibidos por mes</span>
+                </div>
+
+                {% if hay_ingresos %}
+                <div class="dash-chart dash-chart-crece">
+                    <canvas id="graficoIngresos"></canvas>
+                </div>
+                {% else %}
+                <p class="dash-vacio">
+                    <span class="material-symbols-outlined">show_chart</span>
+                    Todavía no hay pagos registrados para dibujar la tendencia.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="dash-card-header">
+                    <h2 class="dash-card-title">Inventario por categoría</h2>
+                    <span class="dash-card-nota">{{ total_unidades }} unidades</span>
+                </div>
+
+                {% if inventario_categoria %}
+                <div class="dash-chart dash-chart-dona">
+                    <canvas id="graficoCategorias"></canvas>
+                </div>
+
+                <!-- La leyenda también muestra el número y el porcentaje, para que
+                     la información no dependa únicamente del color -->
+                <ul class="dash-leyenda">
+                    {% for c in inventario_categoria %}
+                    <li>
+                        <span class="dash-leyenda-punto" data-color="{{ forloop.counter0 }}"></span>
+                        <span class="dash-leyenda-nombre">{{ c.categoria }}</span>
+                        <span class="dash-leyenda-valor">{{ c.unidades }} und.</span>
+                        <span class="dash-leyenda-porcentaje">{{ c.porcentaje }}%</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="dash-vacio">
+                    <span class="material-symbols-outlined">donut_large</span>
+                    No hay stock registrado todavía.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ==================== MÁS VENDIDOS + PEDIDOS POR ESTADO ==================== -->
+<div class="row g-3 mt-1">
+
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="dash-card-header">
+                    <h2 class="dash-card-title">Productos más vendidos</h2>
+                    <span class="dash-card-nota">Unidades pedidas</span>
+                </div>
+
+                {% if mas_vendidos %}
+                <div class="dash-chart" style="height: 220px;">
+                    <canvas id="graficoVendidos"></canvas>
+                </div>
+                {% else %}
+                <p class="dash-vacio">
+                    <span class="material-symbols-outlined">bar_chart</span>
+                    Todavía no hay pedidos con productos.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="dash-card-header">
+                    <h2 class="dash-card-title">Pedidos por estado</h2>
+                    <span class="dash-card-nota">Total de pedidos</span>
+                </div>
+
+                <div class="dash-chart" style="height: 220px;">
+                    <canvas id="graficoEstados"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<!-- ==================== STOCK BAJO + MOVIMIENTOS ==================== -->
+<div class="row g-3 mt-1">
+
+    <div class="col-lg-5">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="dash-card-header">
+                    <h2 class="dash-card-title">Productos con stock bajo</h2>
+                    <span class="dash-card-nota">&le; {{ limite_stock_bajo }} unidades</span>
+                </div>
+
+                {% if productos_stock_bajo %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-end">Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            {% for i in productos_stock_bajo %}
+                            <tr>
+                                <td>
+                                    <div>{{ i.nombre }}</div>
+                                    <div class="text-muted small">{{ i.categoria }} &middot; Talla {{ i.talla }}</div>
+                                </td>
+                                <td class="text-end">
+                                    {% if i.stock == 0 %}
+                                    <span class="badge dash-badge-agotado">Agotado</span>
+                                    {% else %}
+                                    <span class="badge dash-badge-bajo">{{ i.stock }} und.</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if stock_bajo > 8 %}
+                <p class="text-muted small mt-2 mb-0">
+                    Mostrando 8 de {{ stock_bajo }}.
+                    <a href="{% url 'inventario:productos' %}">Ver todos los productos</a>
+                </p>
+                {% endif %}
+                {% else %}
+                <p class="dash-vacio">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    Ningún producto está por debajo del límite.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="dash-card-header">
+                    <h2 class="dash-card-title">Movimientos recientes</h2>
+                    <span class="dash-card-nota">Inventario y pagos</span>
+                </div>
+
+                {% if movimientos_recientes %}
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Actividad</th>
+                                <th>Tipo</th>
+                                <th class="text-end">Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-group-divider">
+                            {% for mov in movimientos_recientes %}
+                            <tr>
+                                <td class="text-muted text-nowrap">{{ mov.fecha|date:"d/m/Y H:i" }}</td>
+                                <td>
+                                    <div>{{ mov.actividad }}</div>
+                                    <div class="text-muted small">{{ mov.detalle }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge dash-badge-{{ mov.estado|lower }}">{{ mov.estado }}</span>
+                                </td>
+                                <td class="text-end">
+                                    {% if mov.monto %}{{ mov.monto|pesos }}{% else %}&ndash;{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p class="dash-vacio">
+                    <span class="material-symbols-outlined">history</span>
+                    Todavía no hay movimientos registrados.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{% block scripts %}
+
+{{ tendencia_ingresos|json_script:"datos-ingresos" }}
+{{ inventario_categoria|json_script:"datos-categorias" }}
+{{ mas_vendidos|json_script:"datos-vendidos" }}
+{{ pedidos_estado|json_script:"datos-estados" }}
+
+<script src="{% static 'js/chart.umd.min.js' %}"></script>
+<script>
+    // ------------------------------------------------------------------
+    // Gráficos del panel de control.
+    // Los datos vienen de la vista dashboard() en etiquetas json_script.
+    // ------------------------------------------------------------------
+
+    (function () {
+
+        // Colores tomados del tema de INTSHOT
+        const AZUL = '#0052cc';
+        const TINTA = '#1e293b';
+        const GRIS = '#64748b';
+        const LINEA_GRIS = '#e2e8f0';
+
+        // Paleta para la dona de categorías (colores que se distinguen
+        // bien entre sí, incluso para personas con daltonismo)
+        const PALETA = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300'];
+
+        // Lee un bloque json_script; si no existe devuelve una lista vacía
+        function leer(id) {
+            const etiqueta = document.getElementById(id);
+            return etiqueta ? JSON.parse(etiqueta.textContent) : [];
+        }
+
+        // Formatea un número como pesos colombianos: 25000 -> $ 25.000
+        const separador = new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 });
+        function pesos(valor) {
+            return '$ ' + separador.format(valor);
+        }
+
+        // Opciones que comparten todos los gráficos
+        Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif";
+        Chart.defaults.font.size = 11;
+        Chart.defaults.color = GRIS;
+
+        const TOOLTIP = {
+            backgroundColor: TINTA,
+            padding: 10,
+            cornerRadius: 6,
+            displayColors: false,
+            titleFont: { weight: '700' },
+        };
+
+
+        // ---------- 1. Ingresos de los últimos 6 meses (línea) ----------
+        const ingresos = leer('datos-ingresos');
+        const lienzoIngresos = document.getElementById('graficoIngresos');
+
+        if (lienzoIngresos && ingresos.length) {
+            // Relleno degradado suave debajo de la línea
+            const contexto = lienzoIngresos.getContext('2d');
+            const degradado = contexto.createLinearGradient(0, 0, 0, 260);
+            degradado.addColorStop(0, 'rgba(0, 82, 204, 0.18)');
+            degradado.addColorStop(1, 'rgba(0, 82, 204, 0)');
+
+            new Chart(lienzoIngresos, {
+                type: 'line',
+                data: {
+                    labels: ingresos.map(i => i.mes),
+                    datasets: [{
+                        label: 'Ingresos',
+                        data: ingresos.map(i => i.valor),
+                        borderColor: AZUL,
+                        backgroundColor: degradado,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0,
+                        pointRadius: 3,
+                        pointBackgroundColor: AZUL,
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 6,
+                        pointHoverBackgroundColor: AZUL,
+                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBorderWidth: 2,
+                        hitRadius: 14,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: Object.assign({}, TOOLTIP, {
+                            callbacks: { label: c => pesos(c.parsed.y) },
+                        }),
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            border: { color: LINEA_GRIS },
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: LINEA_GRIS },
+                            border: { display: false },
+                            ticks: {
+                                maxTicksLimit: 5,
+                                callback: v => v >= 1000000 ? '$' + (v / 1000000) + 'M'
+                                    : v >= 1000 ? '$' + (v / 1000) + 'k'
+                                        : '$' + v,
+                            },
+                        },
+                    },
+                },
+            });
+        }
+
+
+        // ---------- 2. Inventario por categoría (dona) ----------
+        const categorias = leer('datos-categorias');
+        const lienzoCategorias = document.getElementById('graficoCategorias');
+
+        if (lienzoCategorias && categorias.length) {
+            new Chart(lienzoCategorias, {
+                type: 'doughnut',
+                data: {
+                    labels: categorias.map(c => c.categoria),
+                    datasets: [{
+                        data: categorias.map(c => c.unidades),
+                        backgroundColor: categorias.map((c, i) => PALETA[i % PALETA.length]),
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                        hoverOffset: 6,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '62%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: Object.assign({}, TOOLTIP, {
+                            callbacks: { label: c => c.parsed + ' unidades' },
+                        }),
+                    },
+                },
+            });
+
+            // Se pintan los puntos de la leyenda con los mismos colores del gráfico
+            document.querySelectorAll('.dash-leyenda-punto').forEach(function (punto) {
+                const posicion = parseInt(punto.dataset.color, 10);
+                punto.style.backgroundColor = PALETA[posicion % PALETA.length];
+            });
+        }
+
+
+        // ---------- 3. Productos más vendidos (barras horizontales) ----------
+        const vendidos = leer('datos-vendidos');
+        const lienzoVendidos = document.getElementById('graficoVendidos');
+
+        if (lienzoVendidos && vendidos.length) {
+            new Chart(lienzoVendidos, {
+                type: 'bar',
+                data: {
+                    labels: vendidos.map(v => v.producto),
+                    datasets: [{
+                        data: vendidos.map(v => v.unidades),
+                        backgroundColor: AZUL,
+                        borderRadius: 4,
+                        borderSkipped: false,
+                        barThickness: 18,
+                    }],
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: Object.assign({}, TOOLTIP, {
+                            callbacks: { label: c => c.parsed.x + ' unidades vendidas' },
+                        }),
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: LINEA_GRIS },
+                            border: { display: false },
+                            ticks: { precision: 0 },
+                        },
+                        y: {
+                            grid: { display: false },
+                            border: { color: LINEA_GRIS },
+                        },
+                    },
+                },
+            });
+        }
+
+
+        // ---------- 4. Pedidos por estado (barras horizontales) ----------
+        const estados = leer('datos-estados');
+        const lienzoEstados = document.getElementById('graficoEstados');
+
+        if (lienzoEstados && estados.length) {
+            new Chart(lienzoEstados, {
+                type: 'bar',
+                data: {
+                    labels: estados.map(e => e.estado),
+                    datasets: [{
+                        data: estados.map(e => e.total),
+                        backgroundColor: AZUL,
+                        borderRadius: 4,
+                        borderSkipped: false,
+                        barThickness: 16,
+                    }],
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: Object.assign({}, TOOLTIP, {
+                            callbacks: { label: c => c.parsed.x + ' pedido' + (c.parsed.x === 1 ? '' : 's') },
+                        }),
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: LINEA_GRIS },
+                            border: { display: false },
+                            ticks: { precision: 0 },
+                        },
+                        y: {
+                            grid: { display: false },
+                            border: { color: LINEA_GRIS },
+                        },
+                    },
+                },
+            });
+        }
+
+    })();
+</script>
+
+{% endblock %}

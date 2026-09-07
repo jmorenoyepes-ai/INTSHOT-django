@@ -49,6 +49,19 @@
                             <label class="form-label">Texto del pie de página</label>
                             <input value="{{ datos.texto_footer }}" type="text" name="texto_footer" class="form-control">
                         </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Alerta de stock bajo</label>
+                            <div class="input-group">
+                                <input value="{{ datos.limite_stock_bajo }}" type="number" name="limite_stock_bajo"
+                                    min="0" step="1" class="form-control" required>
+                                <span class="input-group-text">unidades</span>
+                            </div>
+                            <div class="form-text">
+                                Los productos con esta cantidad de unidades o menos aparecen como
+                                <strong>stock bajo</strong> en el panel de control.
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-md-6">

@@ -12,7 +12,7 @@
             <p>{{ configuracion.hero_texto }}</p>
             <ul>
                 {% for i in vinetas %}
-                <li>✔ {{ i.texto }}</li>
+                <li>{{ i.texto }}</li>
                 {% endfor %}
             </ul>
         </div>
@@ -28,44 +28,55 @@
 
 <!-- Catálogo -->
 <section id="catalogo" class="contenedor-principal">
-    <h2 style="color: #004aad">{{ configuracion.titulo_catalogo }}</h2>
+    <h2>{{ configuracion.titulo_catalogo }}</h2>
     <br>
 
     <div class="container-lg">
-        <div class="row row-cols-1 row-cols-md-4 g-4">
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3 text-start">
             {% for i in productos %}
             <div class="col">
-                <div class="card h-100 shadow-sm">
-                    {% if i.imagen %}
-                    <img src="{{ i.imagen.url }}" class="card-img-top producto-imagen" alt="{{ i.nombre }}">
-                    {% else %}
-                    <div class="d-flex align-items-center justify-content-center bg-light" style="height:220px;">
-                        <div class="text-center text-muted">
-                            <img src="{% static 'img/Logo-INTSHOT.jpg' %}" alt="Sin imagen" style="height:80px; opacity:0.4;">
-                            <p class="mt-2 mb-0 small">Sin imagen</p>
-                        </div>
+                <div class="producto-card">
+
+                    <div class="producto-card-imagen">
+                        {% if i.imagen %}
+                        <img src="{{ i.imagen.url }}" alt="{{ i.nombre }}">
+                        {% else %}
+                        <img src="{% static 'img/Logo-INTSHOT.jpg' %}" alt="Sin imagen" class="producto-sin-imagen">
+                        {% endif %}
+
+                        {% if i.stock <= 5 %}
+                        <span class="badge producto-badge-stock bg-warning text-dark">Pocas unidades</span>
+                        {% endif %}
                     </div>
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">{{ i.nombre }}</h5>
-                        <p class="card-text text-muted small">{{ i.descripcion }}</p>
-                        <ul class="list-unstyled small">
-                            <li><strong>Color:</strong> {{ i.color }}</li>
-                            <li><strong>Talla:</strong> {{ i.talla }}</li>
-                            <li><span class="badge bg-secondary">{{ i.categoria }}</span></li>
-                        </ul>
-                        <p class="fs-5 text-success fw-bold">{{ i.precio|pesos }}</p>
+
+                    <div class="producto-card-body">
+                        <span class="badge producto-badge-categoria">{{ i.categoria }}</span>
+                        <h3 class="producto-card-title">{{ i.nombre }}</h3>
+                        <p class="producto-card-meta">
+                            {% if i.color %}{{ i.color }}{% endif %}{% if i.color and i.talla %} &middot; {% endif %}{% if i.talla %}Talla {{ i.talla }}{% endif %}
+                        </p>
+                        <p class="producto-card-stock">
+                            <span class="material-symbols-outlined">inventory_2</span>
+                            {{ i.stock }} disponible{{ i.stock|pluralize }}
+                        </p>
                     </div>
-                    <div class="card-footer">
-                        <a href="{% url 'inventario:comprar_producto' i.id %}" class="btn btn-primary w-100">
-                            🛒 Agregar al carrito
+
+                    <div class="producto-card-footer">
+                        <span class="producto-card-precio">{{ i.precio|pesos }}</span>
+                        <a href="{% url 'inventario:comprar_producto' i.id %}" class="btn btn-primary producto-btn-agregar"
+                            title="Agregar '{{ i.nombre }}' al carrito" aria-label="Agregar {{ i.nombre }} al carrito">
+                            <span class="material-symbols-outlined">add_shopping_cart</span>
                         </a>
                     </div>
+
                 </div>
             </div>
             {% empty %}
             <div class="col-12">
-                <p class="text-center text-muted">No hay productos disponibles en este momento.</p>
+                <div class="catalogo-vacio">
+                    <span class="material-symbols-outlined">inventory_2</span>
+                    <p class="mt-2 mb-0">No hay productos disponibles en este momento.</p>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -81,11 +92,11 @@
 
 <!-- Caracteristicas -->
 <section id="caracteristicas" class="contenedor-principal">
-    <h2 style="color: #004aad">{{ configuracion.titulo_caracteristicas }}</h2>
+    <h2>{{ configuracion.titulo_caracteristicas }}</h2>
     <br>
     <div class="cards">
         {% for i in caracteristicas %}
-        <div class="card" style="width: 18rem;">
+        <div class="card">
             {% if i.imagen %}
             <img src="{{ i.imagen.url }}" class="card-img-top" alt="{{ i.titulo }}">
             {% endif %}
@@ -103,7 +114,7 @@
     <h2>{{ configuracion.titulo_beneficios }}</h2>
     <ul>
         {% for i in beneficios %}
-        <li>{{ i.icono }} <strong>{{ i.titulo }}</strong> {{ i.texto }}</li>
+        <li><span class="beneficio-icono">{{ i.icono }}</span> <strong>{{ i.titulo }}</strong> {{ i.texto }}</li>
         {% endfor %}
     </ul>
 </section>

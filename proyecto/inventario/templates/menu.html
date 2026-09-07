@@ -20,6 +20,14 @@
             <span>Inicio</span>
         </a>
 
+        {% if request.session.logueado.rol == "Administrador" or request.session.logueado.rol == "Empleado" %}
+            {% url 'inventario:dashboard' as url_dashboard %}
+            <a class="sidebar-link {% if request.path == url_dashboard %}active{% endif %}" href="{{ url_dashboard }}">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+        {% endif %}
+
         {% if request.session.logueado.rol == "Administrador" %}
             {% url 'inventario:usuarios' as url_usuarios %}
             <a class="sidebar-link {% if request.path == url_usuarios %}active{% endif %}" href="{{ url_usuarios }}">

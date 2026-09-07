@@ -64,6 +64,7 @@ body {
 .contenido-publico {
   flex: 1 0 auto;
   width: 100%;
+  padding: 1rem;
 }
 
 a {
@@ -492,7 +493,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.85rem;
 }
 
-/* Tarjetas del catalogo  */
+/* Imagen de producto usada en las tarjetas antiguas de Bootstrap */
 .producto-imagen {
     width: 100%;
     height: 220px;
@@ -502,8 +503,547 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==========================================================================
+   Panel de control (dashboard)
+   ========================================================================== */
+
+.dash-kpi {
+  height: 100%;
+  background: var(--intshot-surface);
+  border: 1px solid var(--intshot-border);
+  border-radius: var(--intshot-radius-lg);
+  box-shadow: var(--intshot-shadow-sm);
+  padding: 1.15rem 1.25rem;
+}
+
+.dash-kpi-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--intshot-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.8rem;
+}
+
+.dash-kpi-icon .material-symbols-outlined {
+  font-size: 20px;
+}
+
+.dash-kpi-icon-primary { background: var(--intshot-primary-soft); color: var(--intshot-primary); }
+.dash-kpi-icon-info    { background: var(--intshot-info-soft);    color: var(--intshot-info); }
+.dash-kpi-icon-warning { background: var(--intshot-warning-soft); color: #b45309; }
+.dash-kpi-icon-danger  { background: var(--intshot-danger-soft);  color: var(--intshot-danger); }
+
+.dash-kpi-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--intshot-text-faint);
+  margin: 0;
+}
+
+.dash-kpi-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--intshot-text);
+  line-height: 1.15;
+  margin: 0.15rem 0 0.3rem;
+}
+
+.dash-kpi-nota {
+  font-size: 0.75rem;
+  color: var(--intshot-text-muted);
+  margin: 0;
+}
+
+/* Encabezado de cada tarjeta con gráfico o tabla */
+.dash-card-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.dash-card-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--intshot-text);
+  margin: 0;
+}
+
+.dash-card-nota {
+  font-size: 0.75rem;
+  color: var(--intshot-text-faint);
+}
+
+.dash-chart {
+  position: relative;
+  width: 100%;
+}
+
+/* Tarjeta cuyo gráfico crece para llenar el alto disponible */
+.dash-card-flex .card-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-chart-crece {
+  flex: 1 1 auto;
+  min-height: 260px;
+}
+
+.dash-chart-dona {
+  height: 180px;
+  margin-bottom: 0.75rem;
+}
+
+/* Leyenda de la dona: color + nombre + unidades + porcentaje */
+.dash-leyenda {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.dash-leyenda li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--intshot-border);
+  font-size: 0.8rem;
+}
+
+.dash-leyenda li:last-child {
+  border-bottom: none;
+}
+
+.dash-leyenda-punto {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--intshot-border-strong);
+}
+
+.dash-leyenda-nombre {
+  flex: 1 1 auto;
+  color: var(--intshot-text);
+  min-width: 0;
+}
+
+.dash-leyenda-valor {
+  color: var(--intshot-text-faint);
+  font-size: 0.75rem;
+}
+
+.dash-leyenda-porcentaje {
+  color: var(--intshot-text);
+  font-weight: 700;
+  min-width: 38px;
+  text-align: right;
+}
+
+/* Mensaje cuando todavía no hay datos que graficar */
+.dash-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  text-align: center;
+  color: var(--intshot-text-muted);
+  font-size: 0.85rem;
+  padding: 2.5rem 1rem;
+  margin: 0;
+}
+
+.dash-vacio .material-symbols-outlined {
+  font-size: 40px;
+  opacity: 0.35;
+}
+
+/* Etiquetas de estado de las tablas del panel */
+.dash-badge-entrada { background: var(--intshot-info-soft);    color: #0369a1; }
+.dash-badge-salida  { background: var(--intshot-warning-soft); color: #b45309; }
+.dash-badge-pago    { background: var(--intshot-success-soft); color: #15803d; }
+.dash-badge-bajo    { background: var(--intshot-warning-soft); color: #b45309; }
+.dash-badge-agotado { background: var(--intshot-danger-soft);  color: #b91c1c; }
+
+/* ==========================================================================
+   Tarjeta de producto (catálogo interno, catálogo público y landing)
+   ========================================================================== */
+
+.producto-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--intshot-surface);
+  border: 1px solid var(--intshot-border);
+  border-radius: var(--intshot-radius-lg);
+  box-shadow: var(--intshot-shadow-sm);
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.producto-card:hover {
+  box-shadow: var(--intshot-shadow-md);
+  transform: translateY(-2px);
+}
+
+.producto-card-imagen {
+  position: relative;
+  height: 180px;
+  flex-shrink: 0;
+  background: var(--intshot-surface-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.producto-card-imagen img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  padding: 0.75rem;
+}
+
+.producto-card-imagen .producto-sin-imagen {
+  max-height: 70px;
+  opacity: 0.3;
+}
+
+.producto-badge-stock {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+}
+
+.producto-card-body {
+  flex: 1 1 auto;
+  padding: 0.85rem 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.producto-badge-categoria {
+  align-self: flex-start;
+  background: var(--intshot-primary-soft);
+  color: var(--intshot-primary);
+  font-size: 0.68rem;
+  margin-bottom: 0.25rem;
+}
+
+.producto-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--intshot-text);
+  line-height: 1.25;
+  margin: 0;
+}
+
+.producto-card-meta {
+  font-size: 0.78rem;
+  color: var(--intshot-text-muted);
+  margin: 0;
+}
+
+.producto-card-stock {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--intshot-text-faint);
+  margin: 0.15rem 0 0;
+}
+
+.producto-card-stock .material-symbols-outlined {
+  font-size: 15px;
+}
+
+.producto-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding: 0.7rem 1rem;
+  border-top: 1px solid var(--intshot-border);
+}
+
+.producto-card-precio {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--intshot-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.producto-btn-agregar {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--intshot-radius-sm);
+}
+
+.producto-btn-agregar .material-symbols-outlined {
+  font-size: 20px;
+}
+
+/* Mensaje cuando el filtro no devuelve productos */
+.catalogo-vacio {
+  text-align: center;
+  color: var(--intshot-text-muted);
+  padding: 3.5rem 1rem;
+}
+
+.catalogo-vacio .material-symbols-outlined {
+  font-size: 48px;
+  opacity: 0.35;
+}
+
+/* ==========================================================================
+   Carrito de compras
+   ========================================================================== */
+
+.carrito-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.carrito-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--intshot-surface);
+  border: 1px solid var(--intshot-border);
+  border-radius: var(--intshot-radius-lg);
+  box-shadow: var(--intshot-shadow-sm);
+  padding: 0.9rem;
+}
+
+.carrito-item-imagen {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+  background: var(--intshot-surface-muted);
+  border-radius: var(--intshot-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.carrito-item-imagen img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.carrito-item-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.carrito-item-nombre {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--intshot-text);
+  margin: 0;
+}
+
+.carrito-item-meta {
+  font-size: 0.78rem;
+  color: var(--intshot-text-muted);
+  margin: 0.1rem 0;
+}
+
+.carrito-item-precio-unitario {
+  font-size: 0.78rem;
+  color: var(--intshot-text-faint);
+  margin: 0 0 0.35rem;
+}
+
+.carrito-item-eliminar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--intshot-danger);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.carrito-item-eliminar:hover {
+  text-decoration: underline;
+}
+
+.carrito-item-eliminar .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.carrito-item-cantidad {
+  flex-shrink: 0;
+  width: 150px;
+}
+
+.cantidad-stepper {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--intshot-border);
+  border-radius: var(--intshot-radius-sm);
+  overflow: hidden;
+}
+
+.cantidad-btn {
+  width: 34px;
+  border: none;
+  background: var(--intshot-surface-muted);
+  color: var(--intshot-text);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.cantidad-btn:hover {
+  background: var(--intshot-primary-soft);
+  color: var(--intshot-primary);
+}
+
+.cantidad-input {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  border-left: 1px solid var(--intshot-border);
+  border-right: 1px solid var(--intshot-border);
+  text-align: center;
+  font-size: 0.85rem;
+  padding: 0.35rem 0;
+  color: var(--intshot-text);
+}
+
+.cantidad-input:focus {
+  outline: none;
+  background: var(--intshot-primary-soft);
+}
+
+/* Quita las flechitas del input numérico para que no rompan el diseño */
+.cantidad-input::-webkit-outer-spin-button,
+.cantidad-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.cantidad-input {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.carrito-item-subtotal {
+  flex-shrink: 0;
+  text-align: right;
+  min-width: 105px;
+}
+
+.carrito-item-subtotal-label {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--intshot-text-faint);
+}
+
+.carrito-item-subtotal-valor {
+  display: block;
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--intshot-text);
+}
+
+.resumen-compra {
+  background: var(--intshot-surface);
+  border: 1px solid var(--intshot-border);
+  border-radius: var(--intshot-radius-lg);
+  box-shadow: var(--intshot-shadow-sm);
+  padding: 1.25rem;
+  position: sticky;
+  top: calc(var(--intshot-topbar-height) + 1rem);
+}
+
+.resumen-compra-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--intshot-text);
+  margin-bottom: 1rem;
+}
+
+.resumen-compra-fila {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--intshot-text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.resumen-compra-total {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--intshot-text);
+}
+
+.carrito-vacio {
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--intshot-text-muted);
+}
+
+.carrito-vacio .material-symbols-outlined {
+  font-size: 56px;
+  opacity: 0.35;
+}
+
+/* ==========================================================================
    Responsive
    ========================================================================== */
+
+/* El carrito pasa a varias líneas en pantallas pequeñas */
+@media (max-width: 767.98px) {
+  .carrito-item {
+    flex-wrap: wrap;
+  }
+
+  .carrito-item-imagen {
+    width: 60px;
+    height: 60px;
+  }
+
+  .carrito-item-cantidad {
+    width: 100%;
+    order: 3;
+  }
+
+  .carrito-item-subtotal {
+    text-align: left;
+    order: 2;
+    min-width: 0;
+  }
+
+  .resumen-compra {
+    position: static;
+  }
+}
 
 @media (min-width: 992px) {
   .app-sidebar {

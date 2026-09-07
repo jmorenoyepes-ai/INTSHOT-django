@@ -3,73 +3,92 @@
 {% load formato %}
 
 {% block cuerpo %}
-<div class="container-lg">
-    <h1 class="display-4" style="text-align: center;">Catálogo de Productos</h1>
-    <br>
-
-    <!-- Filtros catálogo -->
-    <form method="get" class="row g-2 mb-4 align-items-end">
-        <div class="col-md-5">
-            <input type="text" name="buscar" class="form-control" placeholder="Buscar producto..." value="{{ buscar }}">
-        </div>
-        <div class="col-md-4">
-            <select name="categoria" class="form-select">
-                <option value="">Todas las categorías</option>
-                {% for val, label in categorias %}
-                <option value="{{ val }}" {% if categoria == val %}selected{% endif %}>{{ val }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">🔍 Buscar</button>
-        </div>
-        {% if buscar or categoria %}
-        <div class="col-md-1">
-            <a href="{% url 'inventario:catalogo' %}" class="btn btn-outline-secondary w-100">✕</a>
-        </div>
-        {% endif %}
-    </form>
-
-    <div class="row row-cols-1 row-cols-md-3 g-4">
-        {% for i in datos %}
-        <div class="col">
-            <div class="card h-100 shadow-sm">
-                <!-- Imagen del producto -->
-                {% if i.imagen %}
-                <img src="{{ i.imagen.url }}" class="card-img-top producto-imagen" alt="{{ i.nombre }}">
-                {% else %}
-                <div class="d-flex align-items-center justify-content-center bg-light" style="height:220px;">
-                    <div class="text-center text-muted">
-                        <img src="{% static 'img/Logo-INTSHOT.jpg' %}" alt="Sin imagen" style="height:80px; opacity:0.4;">
-                        <p class="mt-2 mb-0 small">Sin imagen</p>
-                    </div>
-                </div>
-                {% endif %}
-                <div class="card-body">
-                    <h5 class="card-title">{{ i.nombre }}</h5>
-                    <p class="card-text text-muted small">{{ i.descripcion }}</p>
-                    <ul class="list-unstyled small">
-                        <li><strong>Color:</strong> {{ i.color }}</li>
-                        <li><strong>Talla:</strong> {{ i.talla }}</li>
-                        <li><span class="badge bg-secondary">{{ i.categoria }}</span></li>
-                        <li><strong>Stock:</strong> {{ i.stock }} unidades</li>
-                    </ul>
-                    <p class="fs-5 text-success fw-bold">{{ i.precio|pesos }}</p>
-                </div>
-                <div class="card-footer">
-                    <a href="{% url 'inventario:agregar_carrito' i.id %}" class="btn btn-primary w-100">
-                        🛒 Agregar al carrito
-                    </a>
-                </div>
-            </div>
-        </div>
-        {% empty %}
-        <div class="col-12">
-            <p class="text-center text-muted">No hay productos disponibles en este momento.</p>
-        </div>
-        {% endfor %}
+<div class="page-header">
+    <div>
+        <h1 class="display-4">Catálogo de Productos</h1>
+        <p class="text-muted small mb-0">
+            {{ datos.paginator.count }} producto{{ datos.paginator.count|pluralize }} disponible{{ datos.paginator.count|pluralize }}
+        </p>
     </div>
 
-    {% include 'paginacion.html' %}
+    <a href="{% url 'inventario:carrito' %}" class="btn btn-outline-secondary">
+        <span class="material-symbols-outlined" style="font-size:18px; vertical-align:-4px;">shopping_cart</span>
+        Ver mi carrito
+    </a>
 </div>
+
+<!-- Filtros catálogo -->
+<form method="get" class="row g-2 mb-4 align-items-end">
+    <div class="col-md-5">
+        <input type="text" name="buscar" class="form-control" placeholder="Buscar producto..." value="{{ buscar }}">
+    </div>
+    <div class="col-md-4">
+        <select name="categoria" class="form-select">
+            <option value="">Todas las categorías</option>
+            {% for val, label in categorias %}
+            <option value="{{ val }}" {% if categoria == val %}selected{% endif %}>{{ val }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-md-2">
+        <button type="submit" class="btn btn-primary w-100">🔍 Buscar</button>
+    </div>
+    {% if buscar or categoria %}
+    <div class="col-md-1">
+        <a href="{% url 'inventario:catalogo' %}" class="btn btn-outline-secondary w-100">✕</a>
+    </div>
+    {% endif %}
+</form>
+
+<!-- Grilla de productos -->
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
+    {% for i in datos %}
+    <div class="col">
+        <div class="producto-card">
+
+            <div class="producto-card-imagen">
+                {% if i.imagen %}
+                <img src="{{ i.imagen.url }}" alt="{{ i.nombre }}">
+                {% else %}
+                <img src="{% static 'img/Logo-INTSHOT.jpg' %}" alt="Sin imagen" class="producto-sin-imagen">
+                {% endif %}
+
+                {% if i.stock <= 5 %}
+                <span class="badge producto-badge-stock bg-warning text-dark">Pocas unidades</span>
+                {% endif %}
+            </div>
+
+            <div class="producto-card-body">
+                <span class="badge producto-badge-categoria">{{ i.categoria }}</span>
+                <h3 class="producto-card-title">{{ i.nombre }}</h3>
+                <p class="producto-card-meta">
+                    {% if i.color %}{{ i.color }}{% endif %}{% if i.color and i.talla %} &middot; {% endif %}{% if i.talla %}Talla {{ i.talla }}{% endif %}
+                </p>
+                <p class="producto-card-stock">
+                    <span class="material-symbols-outlined">inventory_2</span>
+                    {{ i.stock }} disponible{{ i.stock|pluralize }}
+                </p>
+            </div>
+
+            <div class="producto-card-footer">
+                <span class="producto-card-precio">{{ i.precio|pesos }}</span>
+                <a href="{% url 'inventario:agregar_carrito' i.id %}" class="btn btn-primary producto-btn-agregar"
+                    title="Agregar '{{ i.nombre }}' al carrito" aria-label="Agregar {{ i.nombre }} al carrito">
+                    <span class="material-symbols-outlined">add_shopping_cart</span>
+                </a>
+            </div>
+
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="catalogo-vacio">
+            <span class="material-symbols-outlined">inventory_2</span>
+            <p class="mt-2 mb-0">No hay productos disponibles con estos filtros.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% include 'paginacion.html' %}
 {% endblock %}

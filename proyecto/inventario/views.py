@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.contrib import messages
 from django.db import IntegrityError
-from django.db.models import Sum
+from django.db.models import Sum, Count, F, DecimalField
+from django.utils import timezone
 from .models import *
 from .utilidades import *
 
@@ -169,6 +170,161 @@ def inicio(request):
 @autorizacion()
 def base(request):
     return render(request, "base.html")
+
+
+# Panel de control (dashboard)
+
+# Nombres cortos de los meses para las etiquetas de los gráficos
+MESES_CORTOS = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN",
+                "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"]
+
+
+def ingresos_ultimos_meses(cantidad=6):
+    # Devuelve el total pagado en cada uno de los últimos meses,
+    # empezando por el más antiguo. Ejemplo: [{"mes": "ABR", "valor": 150000}, ...]
+    hoy = timezone.localtime()
+    resultado = []
+
+    for i in range(cantidad - 1, -1, -1):
+        anio = hoy.year
+        mes = hoy.month - i
+
+        # Si el mes queda en cero o negativo, se retrocede de año
+        while mes <= 0:
+            mes += 12
+            anio -= 1
+
+        total = Pago.objects.filter(
+            fecha__year=anio, fecha__month=mes
+        ).aggregate(total=Sum("valor"))["total"] or 0
+
+        resultado.append({
+            "mes": f"{MESES_CORTOS[mes - 1]} {str(anio)[2:]}",
+            "valor": float(total),
+        })
+
+    return resultado
+
+
+@autorizacion(["Administrador", "Empleado"])
+def dashboard(request):
+    configuracion = obtener_configuracion()
+    limite_stock_bajo = configuracion.limite_stock_bajo
+
+    # Las tarjetas de dinero (ventas totales y valor del inventario) son
+    # información reservada: solo las ve el administrador.
+    es_administrador = request.session["logueado"]["rol"] == "Administrador"
+
+    # --- Tarjetas superiores ---
+
+    ventas_totales = 0
+    valor_inventario = 0
+
+    if es_administrador:
+        ventas_totales = Pago.objects.aggregate(total=Sum("valor"))["total"] or 0
+
+        # Valor del inventario = suma de (stock x precio) de todos los productos
+        valor_inventario = Producto.objects.aggregate(
+            total=Sum(
+                F("stock") * F("precio"),
+                output_field=DecimalField(max_digits=14, decimal_places=2),
+            )
+        )["total"] or 0
+
+    pedidos_pendientes = Pedido.objects.filter(estado="Pendiente").count()
+
+    productos_stock_bajo = Producto.objects.filter(
+        stock__lte=limite_stock_bajo
+    ).order_by("stock", "nombre")
+
+    # --- Gráfico 1: ingresos de los últimos 6 meses ---
+    tendencia_ingresos = ingresos_ultimos_meses(6)
+
+    # --- Gráfico 2: inventario por categoría ---
+    categorias = (
+        Producto.objects.values("categoria")
+        .annotate(unidades=Sum("stock"))
+        .filter(unidades__gt=0)
+        .order_by("-unidades")
+    )
+    total_stock = sum(c["unidades"] for c in categorias)
+
+    inventario_categoria = [
+        {
+            "categoria": c["categoria"],
+            "unidades": c["unidades"],
+            "porcentaje": round((c["unidades"] / total_stock) * 100) if total_stock else 0,
+        }
+        for c in categorias
+    ]
+
+    # --- Gráfico 3: productos más vendidos ---
+    mas_vendidos = [
+        {"producto": d["producto__nombre"], "unidades": d["unidades"]}
+        for d in (
+            DetallePedido.objects.values("producto__nombre")
+            .annotate(unidades=Sum("cantidad"))
+            .order_by("-unidades")[:5]
+        )
+    ]
+
+    # --- Gráfico 4: pedidos por estado ---
+    conteo_pedidos = {
+        p["estado"]: p["total"]
+        for p in Pedido.objects.values("estado").annotate(total=Count("id"))
+    }
+    # Se recorren los estados del modelo para que siempre salgan todos y en orden
+    pedidos_estado = [
+        {"estado": clave, "total": conteo_pedidos.get(clave, 0)}
+        for clave, etiqueta in Pedido.ESTADOS
+    ]
+
+    # --- Movimientos recientes (inventario + pagos, ordenados por fecha) ---
+    movimientos_recientes = []
+
+    for m in MovimientoInventario.objects.select_related("producto").order_by("-fecha")[:6]:
+        movimientos_recientes.append({
+            "fecha": m.fecha,
+            "actividad": f"{m.tipo} de inventario",
+            "detalle": f"{m.producto.nombre} ({m.cantidad} und.)",
+            "estado": m.tipo,
+            "monto": None,
+        })
+
+    for pago in Pago.objects.select_related("pedido__usuario").order_by("-fecha")[:6]:
+        movimientos_recientes.append({
+            "fecha": pago.fecha,
+            "actividad": f"Pago recibido - Pedido #{pago.pedido_id}",
+            "detalle": f"{pago.metodo} - {pago.pedido.usuario.nombre}",
+            "estado": "Pago",
+            "monto": pago.valor,
+        })
+
+    movimientos_recientes.sort(key=lambda m: m["fecha"], reverse=True)
+    movimientos_recientes = movimientos_recientes[:8]
+
+    contexto = {
+        "es_administrador": es_administrador,
+        "ventas_totales": ventas_totales,
+        "valor_inventario": valor_inventario,
+        "pedidos_pendientes": pedidos_pendientes,
+        "stock_bajo": productos_stock_bajo.count(),
+        "limite_stock_bajo": limite_stock_bajo,
+
+        "total_productos": Producto.objects.count(),
+        "total_unidades": total_stock,
+
+        "tendencia_ingresos": tendencia_ingresos,
+        # Si todos los meses están en cero no vale la pena dibujar la gráfica
+        "hay_ingresos": any(i["valor"] > 0 for i in tendencia_ingresos),
+        "inventario_categoria": inventario_categoria,
+        "mas_vendidos": mas_vendidos,
+        "pedidos_estado": pedidos_estado,
+
+        "productos_stock_bajo": productos_stock_bajo[:8],
+        "movimientos_recientes": movimientos_recientes,
+    }
+    return render(request, "Dashboard/dashboard.html", contexto)
 
 
 # CRUD de usuarios
@@ -1362,6 +1518,7 @@ def actualizar_configuracion(request):
         telefono = request.POST.get("telefono")
         correo = request.POST.get("correo")
         direccion = request.POST.get("direccion")
+        limite_stock_bajo = request.POST.get("limite_stock_bajo")
 
         # Validaciones del formulario
         errores = []
@@ -1381,6 +1538,10 @@ def actualizar_configuracion(request):
             errores.append("El teléfono solo puede tener números")
         if not campo_vacio(correo) and not correo_valido(correo):
             errores.append("El correo no es válido. Ejemplo: nombre@correo.com")
+        if not es_numero(limite_stock_bajo):
+            errores.append("La alerta de stock bajo debe ser un número")
+        elif int(float(limite_stock_bajo)) < 0:
+            errores.append("La alerta de stock bajo no puede ser negativa")
 
         if errores:
             mostrar_errores(request, errores)
@@ -1398,6 +1559,7 @@ def actualizar_configuracion(request):
             q.telefono = telefono
             q.correo = correo
             q.direccion = direccion
+            q.limite_stock_bajo = int(float(limite_stock_bajo))
 
             if request.FILES.get("logo"):
                 q.logo = request.FILES["logo"]

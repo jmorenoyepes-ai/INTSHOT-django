@@ -8,18 +8,17 @@
     <section class="welcome">
         <div class="texto_bienvenida">
             {% if request.session.logueado %}
-                <h2>Bienvenido:</h2>
-                {{ request.session.logueado.nombre }}!!
-                <br>
-            {% else %}
-            No hay sesión.......
+            <span class="saludo-usuario">
+                <span class="material-symbols-outlined">waving_hand</span>
+                Bienvenido, <strong>{{ request.session.logueado.nombre }}</strong>
+            </span>
             {% endif %}
 
             <h2>{{ configuracion.hero_titulo }}</h2>
             <p>{{ configuracion.hero_texto }}</p>
             <ul>
                 {% for i in vinetas %}
-                <li>✔ {{ i.texto }}</li>
+                <li>{{ i.texto }}</li>
                 {% endfor %}
             </ul>
         </div>
@@ -35,11 +34,11 @@
 
 <!-- Caracteristicas -->
 <section id="caracteristicas" class="contenedor-principal">
-    <h2 style="color: #003d9b">{{ configuracion.titulo_caracteristicas }}</h2>
+    <h2>{{ configuracion.titulo_caracteristicas }}</h2>
     <br>
     <div class="cards">
         {% for i in caracteristicas %}
-        <div class="card" style="width: 18rem;">
+        <div class="card">
             {% if i.imagen %}
             <img src="{{ i.imagen.url }}" class="card-img-top" alt="{{ i.titulo }}">
             {% endif %}
@@ -57,7 +56,7 @@
     <h2>{{ configuracion.titulo_beneficios }}</h2>
     <ul>
         {% for i in beneficios %}
-        <li>{{ i.icono }} <strong>{{ i.titulo }}</strong> {{ i.texto }}</li>
+        <li><span class="beneficio-icono">{{ i.icono }}</span> <strong>{{ i.titulo }}</strong> {{ i.texto }}</li>
         {% endfor %}
     </ul>
 </section>

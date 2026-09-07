@@ -15,6 +15,7 @@ urlpatterns = [
     
     path('inicio/', views.inicio, name="inicio"),
     path('base/', views.base, name="base"),
+    path('dashboard/', views.dashboard, name="dashboard"),
 
     # módulo usuarios
     path('usuarios/', views.ver_usuarios, name="usuarios"),

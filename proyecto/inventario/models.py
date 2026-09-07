@@ -200,6 +200,10 @@ class Configuracion(models.Model):
     titulo_caracteristicas = models.CharField(max_length=100, default="Características")
     titulo_beneficios = models.CharField(max_length=100, default="¿Por qué elegir INTSHOT?")
 
+    # Panel de control (dashboard)
+    # A partir de esta cantidad de unidades un producto se considera con stock bajo
+    limite_stock_bajo = models.IntegerField(default=10)
+
     # Pie de página y datos de contacto
     texto_footer = models.CharField(max_length=300, default="Todos los derechos reservados", blank=True)
     telefono = models.CharField(max_length=20, default="", blank=True)

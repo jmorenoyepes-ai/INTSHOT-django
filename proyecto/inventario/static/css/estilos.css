@@ -11,104 +11,242 @@
     font-weight: 600;
 }
 
-/* Bienvenida */
+/* ==========================================================================
+   Bienvenida (se usa en el inicio del sistema y en la página pública)
+   ========================================================================== */
+
 .bienvenida {
-    padding: 4rem 2rem;
-    background: radial-gradient(circle at 30% 40%, #e6eeff 0%, #ffffff 90%);
+    padding: 2.75rem 2rem;
+    background: radial-gradient(circle at 20% 20%, #e6eeff 0%, #ffffff 75%);
+    border: 1px solid var(--intshot-border, #e2e8f0);
     border-radius: var(--intshot-radius-lg, 12px);
 }
 
 .welcome {
     display: flex;
     align-items: center;
-    justify-content: space-around;
+    justify-content: space-between;
     flex-wrap: wrap;
-    gap: 3rem;
+    gap: 2.5rem;
     max-width: 1100px;
     margin: auto;
 }
 
 .texto_bienvenida {
-    flex: 1;
-    min-width: 320px;
+    flex: 1 1 380px;
+    min-width: 300px;
+}
+
+/* Saludo al usuario que inició sesión */
+.saludo-usuario {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--intshot-surface, #fff);
+    border: 1px solid var(--intshot-border, #e2e8f0);
+    border-radius: var(--intshot-radius-pill, 999px);
+    padding: 0.3rem 0.85rem;
+    margin-bottom: 1rem;
+    font-size: 0.82rem;
+    color: var(--intshot-text-muted, #64748b);
+}
+
+.saludo-usuario strong {
+    color: var(--intshot-text, #1e293b);
+}
+
+.saludo-usuario .material-symbols-outlined {
+    font-size: 17px;
+    color: var(--intshot-warning, #f59e0b);
 }
 
 .texto_bienvenida h2 {
-    font-size: 2.3rem;
-    color: #003d9b;
-    line-height: 1.3;
-    font-weight: 700;
+    font-size: 2rem;
+    color: var(--intshot-primary-dark, #003d9b);
+    line-height: 1.25;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0;
 }
 
 .texto_bienvenida p {
-    margin: 1rem 0;
-    font-size: 1.05rem;
+    margin: 0.9rem 0;
+    font-size: 1rem;
+    color: var(--intshot-text-muted, #64748b);
+    max-width: 55ch;
 }
 
 .texto_bienvenida ul {
     list-style: none;
     padding: 0;
-    margin: 1rem 0 2rem;
+    margin: 1.2rem 0 0;
 }
 
+/* Cada viñeta lleva su chulito puesto desde el CSS */
 .texto_bienvenida ul li {
+    position: relative;
+    padding-left: 1.75rem;
     margin-bottom: 0.6rem;
+    font-size: 0.92rem;
     font-weight: 500;
+    color: var(--intshot-text, #1e293b);
+}
+
+.texto_bienvenida ul li::before {
+    content: "\2714";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--intshot-primary-soft, rgba(0, 82, 204, 0.08));
+    color: var(--intshot-primary, #0052cc);
+    font-size: 0.7rem;
 }
 
 .imagen_bienvenida {
-    flex: 1;
+    flex: 1 1 340px;
     display: flex;
     justify-content: center;
 }
 
 .imagen_bienvenida img {
     width: 100%;
-    max-width: 500px;
-    border-radius: 35px;
+    max-width: 460px;
+    border-radius: var(--intshot-radius-lg, 12px);
+    box-shadow: var(--intshot-shadow-lg, 0 8px 24px rgba(15, 23, 42, 0.10));
 }
 
-/* Caracteristicas */
+/* ==========================================================================
+   Características
+   ========================================================================== */
+
 .contenedor-principal {
-    padding: 4rem 2rem;
+    padding: 3rem 1rem;
     text-align: center;
+}
+
+.contenedor-principal > h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--intshot-primary-dark, #003d9b);
+    letter-spacing: -0.02em;
 }
 
 .cards {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 2rem;
+    align-items: stretch;
+    gap: 1.5rem;
 }
 
-.contenedor-principal .card {
-    background: #fff;
-    padding: 2rem;
-    border-radius: 12px;
+.contenedor-principal .cards .card {
+    flex: 0 1 300px;
     max-width: 300px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+    text-align: left;
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-/* Beneficios */
+.contenedor-principal .cards .card:hover {
+    transform: translateY(-2px);
+}
+
+/* Las imágenes son ilustraciones: se muestran completas, sin recortar */
+.contenedor-principal .cards .card .card-img-top {
+    height: 160px;
+    object-fit: contain;
+    padding: 0.75rem;
+    background: var(--intshot-surface-muted, #f1f5f9);
+}
+
+.contenedor-principal .cards .card .card-body {
+    padding: 1.15rem;
+}
+
+.contenedor-principal .cards .card .card-text {
+    font-size: 0.85rem;
+    color: var(--intshot-text-muted, #64748b);
+    margin-bottom: 0;
+}
+
+/* ==========================================================================
+   Beneficios
+   ========================================================================== */
+
 .beneficios {
     background: linear-gradient(135deg, #0052cc, #003d9b);
     color: #fff;
     text-align: center;
-    padding: 4rem 2rem;
+    padding: 2.75rem 2rem;
     border-radius: var(--intshot-radius-lg, 12px);
-    margin-top: 2rem;
+    margin-top: 1rem;
 }
 
 .beneficios h2 {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 800;
     margin-bottom: 1.8rem;
 }
 
+/* Los beneficios se acomodan en tarjetas dentro de la franja azul */
 .beneficios ul {
     list-style: none;
-    max-width: 700px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 1rem;
+    max-width: 900px;
     margin: auto;
-    font-size: 1.1rem;
-    line-height: 2;
     padding: 0;
+    text-align: left;
+}
+
+.beneficios ul li {
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: var(--intshot-radius-lg, 12px);
+    padding: 1rem 1.15rem;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.88);
+}
+
+.beneficios ul li strong {
+    display: block;
+    color: #fff;
+    font-size: 1rem;
+    margin: 0.35rem 0 0.15rem;
+}
+
+.beneficio-icono {
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (max-width: 767.98px) {
+    .bienvenida {
+        padding: 1.75rem 1.25rem;
+    }
+
+    .texto_bienvenida h2 {
+        font-size: 1.6rem;
+    }
+
+    .contenedor-principal {
+        padding: 2rem 0.75rem;
+    }
+
+    .beneficios {
+        padding: 2rem 1.25rem;
+    }
 }
