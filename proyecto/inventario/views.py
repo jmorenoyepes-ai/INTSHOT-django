@@ -58,6 +58,29 @@ def comprar_producto(request, id):
     return redirect("inventario:agregar_carrito", id=id)
 
 
+def productos_relacionados(producto, cantidad=4):
+    # Otros productos de la misma categoría para mostrarlos al final de la ficha.
+    # La usan las dos fichas de producto: la pública y la del cliente.
+    t = Producto.objects.filter(categoria=producto.categoria, stock__gt=0)
+    t = t.exclude(pk=producto.id).order_by("nombre")
+    return t[:cantidad]
+
+
+def detalle_producto_publico(request, id):
+    # Ficha con toda la información del producto para quien todavía no inicia sesión
+    try:
+        producto = Producto.objects.get(pk=id)
+    except Producto.DoesNotExist:
+        messages.warning(request, "El producto que buscas ya no está disponible")
+        return redirect("inventario:catalogo_publico")
+
+    contexto = {
+        "producto": producto,
+        "relacionados": productos_relacionados(producto),
+    }
+    return render(request, "Catalogo/detalle_producto_publico.html", contexto)
+
+
 def login(request):
     if request.method == "POST":
         usuario = request.POST.get("user")
@@ -801,6 +824,22 @@ def ver_catalogo(request):
         "categorias": Producto.CATEGORIAS,
     }
     return render(request, "Catalogo/catalogo.html", contexto)
+
+
+@autorizacion(["Cliente"])
+def ver_detalle_producto(request, id):
+    # Ficha con toda la información del producto dentro del sistema
+    try:
+        producto = Producto.objects.get(pk=id)
+    except Producto.DoesNotExist:
+        messages.warning(request, "El producto que buscas ya no está disponible")
+        return redirect("inventario:catalogo")
+
+    contexto = {
+        "producto": producto,
+        "relacionados": productos_relacionados(producto),
+    }
+    return render(request, "Catalogo/detalle_producto.html", contexto)
 
 
 # Carrito

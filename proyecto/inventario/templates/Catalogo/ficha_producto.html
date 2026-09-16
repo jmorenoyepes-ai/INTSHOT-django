@@ -1,0 +1,163 @@
+{% load static %}
+{% load formato %}
+
+{% comment %}
+Ficha con toda la información de un producto.
+
+La usan las dos vistas de detalle (la pública y la del cliente). Lo único que
+cambia entre ellas son las rutas, que se le pasan desde cada plantilla con
+{% include ... with %}:
+
+  url_volver      -> a dónde regresa el botón "Volver al catálogo"
+  ruta_agregar    -> nombre de la url del botón de comprar
+  ruta_detalle    -> nombre de la url de las tarjetas de productos similares
+{% endcomment %}
+
+<!-- Migas de pan: para saber siempre dónde está parado el usuario -->
+<nav class="detalle-migas">
+    <a href="{{ url_volver }}">Catálogo</a>
+    <span class="material-symbols-outlined">chevron_right</span>
+    <span>{{ producto.categoria }}</span>
+    <span class="material-symbols-outlined">chevron_right</span>
+    <span class="detalle-migas-actual">{{ producto.nombre }}</span>
+</nav>
+
+<div class="detalle-producto">
+
+    <!-- Imagen grande del producto -->
+    <div class="detalle-producto-imagen">
+        {% if producto.imagen %}
+        <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+        {% else %}
+        <img src="{% static 'img/Logo-INTSHOT.jpg' %}" alt="Sin imagen" class="detalle-sin-imagen">
+        {% endif %}
+    </div>
+
+    <!-- Toda la información del producto -->
+    <div class="detalle-producto-info">
+
+        <span class="badge producto-badge-categoria">{{ producto.categoria }}</span>
+        <h1 class="detalle-producto-titulo">{{ producto.nombre }}</h1>
+        <p class="detalle-producto-codigo">Código INT-{{ producto.id }}</p>
+
+        <p class="detalle-producto-precio">{{ producto.precio|pesos }}</p>
+
+        <!-- Disponibilidad: cambia de color según el stock que quede -->
+        {% if producto.stock == 0 %}
+        <p class="detalle-producto-stock detalle-stock-agotado">
+            <span class="material-symbols-outlined">remove_shopping_cart</span>
+            Producto agotado por el momento
+        </p>
+        {% elif producto.stock <= 5 %}
+        <p class="detalle-producto-stock detalle-stock-bajo">
+            <span class="material-symbols-outlined">warning</span>
+            ¡Quedan solo {{ producto.stock }} unidad{{ producto.stock|pluralize:"es" }}!
+        </p>
+        {% else %}
+        <p class="detalle-producto-stock detalle-stock-disponible">
+            <span class="material-symbols-outlined">check_circle</span>
+            {{ producto.stock }} unidades disponibles
+        </p>
+        {% endif %}
+
+        <!-- Descripción completa -->
+        <div class="detalle-bloque">
+            <h2 class="detalle-bloque-titulo">Descripción</h2>
+            <p class="detalle-bloque-texto">
+                {% if producto.descripcion %}{{ producto.descripcion }}{% else %}Este producto aún no tiene una descripción.{% endif %}
+            </p>
+        </div>
+
+        <!-- Ficha técnica -->
+        <div class="detalle-bloque">
+            <h2 class="detalle-bloque-titulo">Ficha técnica</h2>
+            <div class="detalle-ficha">
+                <div class="detalle-ficha-item">
+                    <span class="detalle-ficha-label">Categoría</span>
+                    <span class="detalle-ficha-valor">{{ producto.categoria }}</span>
+                </div>
+                <div class="detalle-ficha-item">
+                    <span class="detalle-ficha-label">Color</span>
+                    <span class="detalle-ficha-valor">{% if producto.color %}{{ producto.color }}{% else %}—{% endif %}</span>
+                </div>
+                <div class="detalle-ficha-item">
+                    <span class="detalle-ficha-label">Talla</span>
+                    <span class="detalle-ficha-valor">{% if producto.talla %}{{ producto.talla }}{% else %}—{% endif %}</span>
+                </div>
+                <div class="detalle-ficha-item">
+                    <span class="detalle-ficha-label">Unidades en stock</span>
+                    <span class="detalle-ficha-valor">{{ producto.stock }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="detalle-acciones">
+            {% if producto.stock > 0 %}
+            <a href="{% url ruta_agregar producto.id %}" class="btn btn-primary detalle-btn-comprar">
+                <span class="material-symbols-outlined">add_shopping_cart</span>
+                Agregar al carrito
+            </a>
+            {% else %}
+            <button type="button" class="btn btn-primary detalle-btn-comprar" disabled>
+                <span class="material-symbols-outlined">add_shopping_cart</span>
+                Agotado
+            </button>
+            {% endif %}
+
+            <a href="{{ url_volver }}" class="btn btn-outline-secondary">
+                <span class="material-symbols-outlined">arrow_back</span>
+                Volver al catálogo
+            </a>
+        </div>
+
+    </div>
+</div>
+
+<!-- Otros productos de la misma categoría -->
+{% if relacionados %}
+<div class="detalle-relacionados">
+    <h2 class="detalle-relacionados-titulo">Productos similares</h2>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-3">
+        {% for i in relacionados %}
+        <div class="col">
+            <div class="producto-card">
+
+                <a href="{% url ruta_detalle i.id %}" class="producto-card-imagen" title="Ver detalle de {{ i.nombre }}">
+                    {% if i.imagen %}
+                    <img src="{{ i.imagen.url }}" alt="{{ i.nombre }}">
+                    {% else %}
+                    <img src="{% static 'img/Logo-INTSHOT.jpg' %}" alt="Sin imagen" class="producto-sin-imagen">
+                    {% endif %}
+
+                    {% if i.stock <= 5 %}
+                    <span class="badge producto-badge-stock bg-warning text-dark">Pocas unidades</span>
+                    {% endif %}
+                </a>
+
+                <div class="producto-card-body">
+                    <span class="badge producto-badge-categoria">{{ i.categoria }}</span>
+                    <h3 class="producto-card-title">
+                        <a href="{% url ruta_detalle i.id %}" class="producto-card-enlace">{{ i.nombre }}</a>
+                    </h3>
+                    <span class="producto-card-precio">{{ i.precio|pesos }}</span>
+                </div>
+
+                <div class="producto-card-footer">
+                    <a href="{% url ruta_detalle i.id %}" class="btn btn-outline-primary producto-btn-detalle">
+                        <span class="material-symbols-outlined">visibility</span>
+                        Ver detalle
+                    </a>
+                    <a href="{% url ruta_agregar i.id %}" class="btn btn-primary producto-btn-agregar"
+                        title="Agregar '{{ i.nombre }}' al carrito" aria-label="Agregar {{ i.nombre }} al carrito">
+                        <span class="material-symbols-outlined">add_shopping_cart</span>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}

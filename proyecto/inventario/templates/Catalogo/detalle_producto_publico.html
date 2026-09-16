@@ -1,0 +1,10 @@
+{% extends 'base_publico.html' %}
+{% load static %}
+{% load formato %}
+
+{% block cuerpo %}
+<div class="container-lg py-4">
+    {% url 'inventario:catalogo_publico' as url_volver %}
+    {% include 'Catalogo/ficha_producto.html' with url_volver=url_volver ruta_agregar='inventario:comprar_producto' ruta_detalle='inventario:detalle_producto_publico' %}
+</div>
+{% endblock %}

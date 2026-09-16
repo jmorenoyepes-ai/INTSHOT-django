@@ -43,6 +43,118 @@
 }
 
 /* ==========================================================================
+   Modo oscuro
+   Reutiliza el mismo atributo que activa el modo oscuro nativo de Bootstrap
+   (data-bs-theme="dark"), asi los componentes de Bootstrap que no controlamos
+   con nuestras variables (modales, navbar, focus rings, etc.) tambien se adaptan.
+   ========================================================================== */
+
+[data-bs-theme="dark"] {
+  --intshot-bg: #0f172a;
+  --intshot-surface: #1e293b;
+  --intshot-surface-muted: #334155;
+  --intshot-border: #334155;
+  --intshot-border-strong: #475569;
+
+  --intshot-text: #f1f5f9;
+  --intshot-text-muted: #94a3b8;
+  --intshot-text-faint: #64748b;
+
+  --intshot-primary: #5b9bf0;
+  --intshot-primary-dark: #7fb2f5;
+  --intshot-primary-soft: rgba(91, 155, 240, 0.15);
+  --intshot-primary-soft-strong: rgba(91, 155, 240, 0.25);
+
+  --intshot-success: #4ade80;
+  --intshot-success-soft: rgba(34, 197, 94, 0.16);
+  --intshot-danger: #f87171;
+  --intshot-danger-soft: rgba(239, 68, 68, 0.16);
+  --intshot-warning: #fbbf24;
+  --intshot-warning-soft: rgba(245, 158, 11, 0.16);
+  --intshot-info: #38bdf8;
+  --intshot-info-soft: rgba(14, 165, 233, 0.16);
+
+  --intshot-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --intshot-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --intshot-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  color-scheme: dark;
+}
+
+/* Colores fijos (no variables) que necesitan su propio ajuste en modo oscuro */
+[data-bs-theme="dark"] .app-topbar {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+[data-bs-theme="dark"] .producto-imagen {
+  background-color: var(--intshot-surface);
+}
+
+/* .bienvenida vive en estilos.css con un degradado claro fijo */
+[data-bs-theme="dark"] .bienvenida {
+  background: radial-gradient(circle at 20% 20%, #1e293b 0%, #0f172a 75%);
+}
+
+/* Los acentos del modo oscuro son tonos pastel: con texto blanco encima el
+   contraste queda por debajo de lo legible, asi que los botones solidos pasan
+   a texto oscuro (el mismo criterio que usa Bootstrap con sus botones claros). */
+[data-bs-theme="dark"] .btn-primary,
+[data-bs-theme="dark"] .btn-primary:hover,
+[data-bs-theme="dark"] .btn-primary:focus,
+[data-bs-theme="dark"] .btn-outline-primary:hover,
+[data-bs-theme="dark"] .btn-outline-primary:focus,
+[data-bs-theme="dark"] .btn-success,
+[data-bs-theme="dark"] .btn-danger {
+  color: #0b1220;
+}
+
+/* Textos de estado con color fijo (KPIs y badges del dashboard) que estan
+   pensados para fondos "soft" claros: se aclaran para mantener contraste
+   sobre los mismos fondos "soft" ya convertidos a version translucida oscura. */
+[data-bs-theme="dark"] .dash-kpi-icon-warning,
+[data-bs-theme="dark"] .dash-badge-salida,
+[data-bs-theme="dark"] .dash-badge-bajo {
+  color: #fbbf24;
+}
+
+[data-bs-theme="dark"] .dash-badge-entrada {
+  color: #38bdf8;
+}
+
+[data-bs-theme="dark"] .dash-badge-pago {
+  color: #4ade80;
+}
+
+[data-bs-theme="dark"] .dash-badge-agotado {
+  color: #f87171;
+}
+
+[data-bs-theme="dark"] .detalle-stock-disponible {
+  color: #4ade80;
+}
+
+[data-bs-theme="dark"] .detalle-stock-bajo {
+  color: #fbbf24;
+}
+
+[data-bs-theme="dark"] .detalle-stock-agotado {
+  color: #f87171;
+}
+
+/* Login / registro: el panel lateral y el boton principal tienen colores
+   propios en auth.css que no se leen bien con la paleta clara invertida. */
+[data-bs-theme="dark"] .auth-split-side {
+  background: linear-gradient(160deg, #1d4ed8 0%, #16307a 60%, #0b1220 100%);
+}
+
+[data-bs-theme="dark"] .btn-auth,
+[data-bs-theme="dark"] .btn-auth:hover {
+  background-color: var(--intshot-primary);
+  border-color: var(--intshot-primary);
+  color: #0b1220;
+}
+
+/* ==========================================================================
    Base
    ========================================================================== */
 
@@ -311,6 +423,79 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--intshot-text-muted);
 }
 
+/* --- Switch de modo oscuro/claro (topbar privada y navbar publica) --- */
+.theme-toggle {
+  position: relative;
+  width: 50px;
+  height: 27px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid var(--intshot-border-strong);
+  border-radius: var(--intshot-radius-pill);
+  background: var(--intshot-surface-muted);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--intshot-primary);
+  outline-offset: 2px;
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: var(--intshot-surface);
+  box-shadow: var(--intshot-shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.theme-toggle-thumb .material-symbols-outlined {
+  font-size: 13px;
+  color: var(--intshot-text-muted);
+}
+
+[data-bs-theme="dark"] .theme-toggle {
+  background: var(--intshot-text);
+  border-color: var(--intshot-text);
+}
+
+[data-bs-theme="dark"] .theme-toggle-thumb {
+  transform: translateX(23px);
+  background: var(--intshot-surface);
+}
+
+[data-bs-theme="dark"] .theme-toggle-thumb .material-symbols-outlined {
+  color: var(--intshot-bg);
+}
+
+/* Quien prefiera menos animacion no ve deslizarse el switch */
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle,
+  .theme-toggle-thumb {
+    transition: none;
+  }
+}
+
+/* --- Navbar de las paginas publicas (landing y catalogo) --- */
+/* Antes traia los colores en un style inline; con variables sigue el tema. */
+.publico-navbar {
+  background-color: var(--intshot-surface);
+  border-bottom: 1px solid var(--intshot-border);
+}
+
+.publico-navbar-marca {
+  font-weight: 800;
+  color: var(--intshot-primary-dark);
+}
+
 /* --- Contenido principal --- */
 .app-main {
   flex: 1 1 auto;
@@ -394,6 +579,17 @@ h1, h2, h3, h4, h5, h6 {
   background: var(--intshot-surface-muted);
   color: var(--intshot-text);
   border-color: var(--intshot-border-strong);
+}
+
+.btn-outline-primary {
+  color: var(--intshot-primary);
+  border-color: var(--intshot-primary);
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:focus {
+  background: var(--intshot-primary);
+  border-color: var(--intshot-primary);
+  color: #fff;
 }
 
 .btn:active {
@@ -702,6 +898,7 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  text-decoration: none;
 }
 
 .producto-card-imagen img {
@@ -746,23 +943,14 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
 
-.producto-card-meta {
-  font-size: 0.78rem;
-  color: var(--intshot-text-muted);
-  margin: 0;
+/* El nombre y la imagen de la tarjeta llevan a la ficha del producto */
+.producto-card-enlace {
+  color: inherit;
+  text-decoration: none;
 }
 
-.producto-card-stock {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.75rem;
-  color: var(--intshot-text-faint);
-  margin: 0.15rem 0 0;
-}
-
-.producto-card-stock .material-symbols-outlined {
-  font-size: 15px;
+.producto-card-enlace:hover {
+  color: var(--intshot-primary);
 }
 
 .producto-card-footer {
@@ -776,12 +964,28 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .producto-card-precio {
+  margin-top: auto;
+  padding-top: 0.45rem;
   font-size: 1.05rem;
   font-weight: 800;
   color: var(--intshot-text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.producto-btn-detalle {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  border-radius: var(--intshot-radius-sm);
+}
+
+.producto-btn-detalle .material-symbols-outlined {
+  font-size: 18px;
 }
 
 .producto-btn-agregar {
@@ -809,6 +1013,211 @@ h1, h2, h3, h4, h5, h6 {
 .catalogo-vacio .material-symbols-outlined {
   font-size: 48px;
   opacity: 0.35;
+}
+
+/* ==========================================================================
+   Ficha de producto (botón "Ver detalle" del catálogo)
+   La usan las dos fichas: la pública y la del cliente.
+   ========================================================================== */
+
+/* Migas de pan */
+.detalle-migas {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--intshot-text-muted);
+  margin-bottom: 1rem;
+}
+
+.detalle-migas a {
+  color: var(--intshot-primary);
+  font-weight: 600;
+}
+
+.detalle-migas .material-symbols-outlined {
+  font-size: 16px;
+  opacity: 0.55;
+}
+
+.detalle-migas-actual {
+  color: var(--intshot-text);
+  font-weight: 600;
+}
+
+/* La ficha se arma en dos columnas: imagen a la izquierda, datos a la derecha */
+.detalle-producto {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.75rem;
+  align-items: start;
+}
+
+.detalle-producto-imagen {
+  height: 420px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  background: var(--intshot-surface);
+  border: 1px solid var(--intshot-border);
+  border-radius: var(--intshot-radius-lg);
+  box-shadow: var(--intshot-shadow-sm);
+
+  /* La imagen acompaña mientras se baja a leer la información */
+  position: sticky;
+  top: calc(var(--intshot-topbar-height) + 1rem);
+}
+
+.detalle-producto-imagen img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  padding: 1.5rem;
+}
+
+.detalle-producto-imagen .detalle-sin-imagen {
+  max-height: 130px;
+  opacity: 0.3;
+}
+
+.detalle-producto-info {
+  background: var(--intshot-surface);
+  border: 1px solid var(--intshot-border);
+  border-radius: var(--intshot-radius-lg);
+  box-shadow: var(--intshot-shadow-sm);
+  padding: 1.5rem;
+}
+
+.detalle-producto-titulo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin: 0.35rem 0 0.2rem;
+}
+
+.detalle-producto-codigo {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--intshot-text-faint);
+  margin: 0 0 1rem;
+}
+
+.detalle-producto-precio {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--intshot-primary);
+  margin: 0 0 0.7rem;
+}
+
+/* Disponibilidad: el color cambia según las unidades que queden */
+.detalle-producto-stock {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.32rem 0.75rem;
+  border-radius: var(--intshot-radius-pill);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.detalle-producto-stock .material-symbols-outlined {
+  font-size: 17px;
+}
+
+.detalle-stock-disponible { background: var(--intshot-success-soft); color: #15803d; }
+.detalle-stock-bajo       { background: var(--intshot-warning-soft); color: #b45309; }
+.detalle-stock-agotado    { background: var(--intshot-danger-soft);  color: #b91c1c; }
+
+/* Bloques de la ficha: descripción y ficha técnica */
+.detalle-bloque {
+  margin-top: 1.4rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--intshot-border);
+}
+
+.detalle-bloque-titulo {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--intshot-text-muted);
+  margin: 0 0 0.6rem;
+}
+
+.detalle-bloque-texto {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--intshot-text);
+  margin: 0;
+}
+
+.detalle-ficha {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.6rem;
+}
+
+.detalle-ficha-item {
+  background: var(--intshot-surface-muted);
+  border-radius: var(--intshot-radius-sm);
+  padding: 0.6rem 0.75rem;
+}
+
+.detalle-ficha-label {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--intshot-text-faint);
+  margin-bottom: 0.15rem;
+}
+
+.detalle-ficha-valor {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--intshot-text);
+}
+
+.detalle-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1.5rem;
+}
+
+.detalle-acciones .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1.25rem;
+  font-size: 0.9rem;
+}
+
+.detalle-acciones .material-symbols-outlined {
+  font-size: 19px;
+}
+
+.detalle-btn-comprar {
+  flex: 1 1 220px;
+}
+
+/* Otros productos de la misma categoría */
+.detalle-relacionados {
+  margin-top: 2.5rem;
+}
+
+.detalle-relacionados-titulo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
 }
 
 /* ==========================================================================
@@ -1017,6 +1426,20 @@ h1, h2, h3, h4, h5, h6 {
 /* ==========================================================================
    Responsive
    ========================================================================== */
+
+/* La ficha del producto pasa a una sola columna: primero la imagen y debajo
+   toda la información */
+@media (max-width: 991.98px) {
+  .detalle-producto {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+
+  .detalle-producto-imagen {
+    position: static;
+    height: 300px;
+  }
+}
 
 /* El carrito pasa a varias líneas en pantallas pequeñas */
 @media (max-width: 767.98px) {

@@ -37,7 +37,8 @@
             <div class="col">
                 <div class="producto-card">
 
-                    <div class="producto-card-imagen">
+                    <a href="{% url 'inventario:detalle_producto_publico' i.id %}" class="producto-card-imagen"
+                        title="Ver detalle de {{ i.nombre }}">
                         {% if i.imagen %}
                         <img src="{{ i.imagen.url }}" alt="{{ i.nombre }}">
                         {% else %}
@@ -47,22 +48,21 @@
                         {% if i.stock <= 5 %}
                         <span class="badge producto-badge-stock bg-warning text-dark">Pocas unidades</span>
                         {% endif %}
-                    </div>
+                    </a>
 
                     <div class="producto-card-body">
                         <span class="badge producto-badge-categoria">{{ i.categoria }}</span>
-                        <h3 class="producto-card-title">{{ i.nombre }}</h3>
-                        <p class="producto-card-meta">
-                            {% if i.color %}{{ i.color }}{% endif %}{% if i.color and i.talla %} &middot; {% endif %}{% if i.talla %}Talla {{ i.talla }}{% endif %}
-                        </p>
-                        <p class="producto-card-stock">
-                            <span class="material-symbols-outlined">inventory_2</span>
-                            {{ i.stock }} disponible{{ i.stock|pluralize }}
-                        </p>
+                        <h3 class="producto-card-title">
+                            <a href="{% url 'inventario:detalle_producto_publico' i.id %}" class="producto-card-enlace">{{ i.nombre }}</a>
+                        </h3>
+                        <span class="producto-card-precio">{{ i.precio|pesos }}</span>
                     </div>
 
                     <div class="producto-card-footer">
-                        <span class="producto-card-precio">{{ i.precio|pesos }}</span>
+                        <a href="{% url 'inventario:detalle_producto_publico' i.id %}" class="btn btn-outline-primary producto-btn-detalle">
+                            <span class="material-symbols-outlined">visibility</span>
+                            Ver detalle
+                        </a>
                         <a href="{% url 'inventario:comprar_producto' i.id %}" class="btn btn-primary producto-btn-agregar"
                             title="Agregar '{{ i.nombre }}' al carrito" aria-label="Agregar {{ i.nombre }} al carrito">
                             <span class="material-symbols-outlined">add_shopping_cart</span>

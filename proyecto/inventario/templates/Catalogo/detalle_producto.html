@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load formato %}
+
+{% block cuerpo %}
+{% url 'inventario:catalogo' as url_volver %}
+{% include 'Catalogo/ficha_producto.html' with url_volver=url_volver ruta_agregar='inventario:agregar_carrito' ruta_detalle='inventario:detalle_producto' %}
+{% endblock %}

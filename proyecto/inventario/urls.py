@@ -9,6 +9,7 @@ urlpatterns = [
     path('', views.landing, name="landing"),
     path('catalogo_publico/', views.catalogo_publico, name="catalogo_publico"),
     path('comprar_producto/<int:id>/', views.comprar_producto, name="comprar_producto"),
+    path('detalle_producto_publico/<int:id>/', views.detalle_producto_publico, name="detalle_producto_publico"),
     path('login/', views.login, name="login"),
     path('logout/', views.logout, name="logout"),
     path('registrarse/', views.registrarse, name="registrarse"),
@@ -37,6 +38,7 @@ urlpatterns = [
 
     # módulo catálogo 
     path('catalogo/', views.ver_catalogo, name="catalogo"),
+    path('detalle_producto/<int:id>/', views.ver_detalle_producto, name="detalle_producto"),
 
     # módulo carrito
     path('carrito/', views.ver_carrito, name="carrito"),
