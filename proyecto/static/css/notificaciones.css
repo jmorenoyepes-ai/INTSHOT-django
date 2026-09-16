@@ -1,0 +1,52 @@
+/* Estilos de las alertas (mensajes de Django) */
+.alert {
+    font-weight: 500;
+    border-left-width: 4px;
+}
+
+.alert-success {
+    background-color: #dcfce7;
+    border-color: #16a34a;
+    color: #14532d;
+}
+
+.alert-danger {
+    background-color: #fee2e2;
+    border-color: #ef4444;
+    color: #7f1d1d;
+}
+
+.alert-warning {
+    background-color: #fef3c7;
+    border-color: #f59e0b;
+    color: #78350f;
+}
+
+.alert-info {
+    background-color: #e0f2fe;
+    border-color: #0ea5e9;
+    color: #0c4a6e;
+}
+
+/* Panel de marca del login */
+.gradient-custom-2 {
+    background: linear-gradient(135deg, #0052cc, #003d9b);
+}
+
+@media (min-width: 768px) {
+    .gradient-form {
+        height: 100vh !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .gradient-custom-2 {
+        border-top-right-radius: .5rem;
+        border-bottom-right-radius: .5rem;
+    }
+}
+
+.bi {
+    width: 1.2rem;
+    height: 1.2rem;
+}
