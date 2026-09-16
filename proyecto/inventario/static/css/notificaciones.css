@@ -50,3 +50,29 @@
     width: 1.2rem;
     height: 1.2rem;
 }
+
+/* Modo oscuro: las alertas usan colores fijos, no variables --intshot-*,
+   asi que necesitan su propio ajuste para mantener buen contraste. */
+[data-bs-theme="dark"] .alert-success {
+    background-color: rgba(34, 197, 94, 0.16);
+    border-color: #4ade80;
+    color: #bbf7d0;
+}
+
+[data-bs-theme="dark"] .alert-danger {
+    background-color: rgba(239, 68, 68, 0.16);
+    border-color: #f87171;
+    color: #fecaca;
+}
+
+[data-bs-theme="dark"] .alert-warning {
+    background-color: rgba(245, 158, 11, 0.16);
+    border-color: #fbbf24;
+    color: #fde68a;
+}
+
+[data-bs-theme="dark"] .alert-info {
+    background-color: rgba(14, 165, 233, 0.16);
+    border-color: #38bdf8;
+    color: #bae6fd;
+}

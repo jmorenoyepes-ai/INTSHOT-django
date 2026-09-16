@@ -1,0 +1,20 @@
+{% comment %}
+Aplica el tema guardado ANTES de que el navegador pinte la página, para que no
+se vea un parpadeo blanco al entrar estando en modo oscuro. Por eso va inline
+en el <head> y no dentro de librerias.js (que se carga al final del <body>).
+
+Se usa el mismo atributo del modo oscuro nativo de Bootstrap 5.3
+(data-bs-theme="dark"), así los componentes que no controlamos con nuestras
+variables (modales, focus rings, navbar, etc.) también se adaptan solos.
+{% endcomment %}
+<script>
+    (function () {
+        try {
+            var tema = localStorage.getItem('intshot-theme');
+            var prefiereOscuro = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (tema === 'dark' || (!tema && prefiereOscuro)) {
+                document.documentElement.setAttribute('data-bs-theme', 'dark');
+            }
+        } catch (e) {}
+    })();
+</script>

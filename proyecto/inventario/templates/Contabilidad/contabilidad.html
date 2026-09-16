@@ -11,27 +11,27 @@
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
-                    <span class="material-symbols-outlined" style="color:#16a34a;">trending_up</span>
+                    <span class="material-symbols-outlined" style="color:var(--intshot-success);">trending_up</span>
                     <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Total Ingresos</p>
-                    <p class="card-text fs-4 fw-bold mb-0" style="color:#16a34a;">{{ total_ingresos|pesos }}</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:var(--intshot-success);">{{ total_ingresos|pesos }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
-                    <span class="material-symbols-outlined" style="color:#ef4444;">trending_down</span>
+                    <span class="material-symbols-outlined" style="color:var(--intshot-danger);">trending_down</span>
                     <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Total Egresos</p>
-                    <p class="card-text fs-4 fw-bold mb-0" style="color:#ef4444;">{{ total_egresos|pesos }}</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:var(--intshot-danger);">{{ total_egresos|pesos }}</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card h-100">
                 <div class="card-body">
-                    <span class="material-symbols-outlined" style="color:{% if balance >= 0 %}#0052cc{% else %}#f59e0b{% endif %};">account_balance_wallet</span>
+                    <span class="material-symbols-outlined" style="color:{% if balance >= 0 %}var(--intshot-primary){% else %}var(--intshot-warning){% endif %};">account_balance_wallet</span>
                     <p class="text-uppercase text-muted small fw-bold mt-2 mb-1">Balance</p>
-                    <p class="card-text fs-4 fw-bold mb-0" style="color:{% if balance >= 0 %}#0052cc{% else %}#f59e0b{% endif %};">{{ balance|pesos }}</p>
+                    <p class="card-text fs-4 fw-bold mb-0" style="color:{% if balance >= 0 %}var(--intshot-primary){% else %}var(--intshot-warning){% endif %};">{{ balance|pesos }}</p>
                 </div>
             </div>
         </div>

@@ -21,6 +21,8 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon_io/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon_io/favicon-16x16.png' %}">
     <link rel="manifest" href="{% static 'favicon_io/site.webmanifest' %}">
+
+    {% include 'tema.html' %}
 </head>
 
 <body>
@@ -38,6 +40,7 @@
                 <div class="topbar-user">
                     <span class="material-symbols-outlined" style="font-size: 20px;">account_circle</span>
                     <span>{{ request.session.logueado.nombre }} &middot; {{ request.session.logueado.rol }}</span>
+                    {% include 'tema_switch.html' %}
                 </div>
             </header>
 

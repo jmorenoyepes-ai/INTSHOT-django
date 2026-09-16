@@ -1,0 +1,10 @@
+{% comment %}
+Switch de modo claro/oscuro. Se repite en la topbar privada y en la navbar
+pública, por eso vive aparte. El estado visual (icono y aria-*) lo pone
+librerias.js al cargar, según el tema que ya haya aplicado tema.html.
+{% endcomment %}
+<button type="button" class="theme-toggle" aria-label="Cambiar a modo oscuro" aria-pressed="false">
+    <span class="theme-toggle-thumb">
+        <span class="material-symbols-outlined theme-toggle-icon">light_mode</span>
+    </span>
+</button>

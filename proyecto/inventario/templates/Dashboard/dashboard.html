@@ -305,15 +305,40 @@
 
     (function () {
 
-        // Colores tomados del tema de INTSHOT
-        const AZUL = '#0052cc';
-        const TINTA = '#1e293b';
-        const GRIS = '#64748b';
-        const LINEA_GRIS = '#e2e8f0';
+        // Colores del tema de INTSHOT: dos juegos, uno por modo. Se calculan
+        // al inicio (segun el tema que ya aplico tema.html) y se recalculan
+        // cada vez que se usa el switch de modo oscuro/claro.
+        function coloresSegunTema(oscuro) {
+            return oscuro ? {
+                AZUL: '#5b9bf0',
+                GRIS: '#94a3b8',
+                LINEA_GRIS: '#334155',
+                BORDE_PUNTO: '#1e293b',
+                DEGRADADO_INICIO: 'rgba(91, 155, 240, 0.28)',
+                DEGRADADO_FIN: 'rgba(91, 155, 240, 0)',
+            } : {
+                AZUL: '#0052cc',
+                GRIS: '#64748b',
+                LINEA_GRIS: '#e2e8f0',
+                BORDE_PUNTO: '#ffffff',
+                DEGRADADO_INICIO: 'rgba(0, 82, 204, 0.18)',
+                DEGRADADO_FIN: 'rgba(0, 82, 204, 0)',
+            };
+        }
+
+        function esOscuroActual() {
+            return document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        }
+
+        let COLORES = coloresSegunTema(esOscuroActual());
 
         // Paleta para la dona de categorías (colores que se distinguen
-        // bien entre sí, incluso para personas con daltonismo)
+        // bien entre sí, incluso para personas con daltonismo). No depende
+        // del tema: son colores saturados que se leen bien en fondo claro u oscuro.
         const PALETA = ['#2a78d6', '#eb6834', '#1baf7a', '#eda100', '#e87ba4', '#008300'];
+
+        // Todos los gráficos creados, para poder recolorearlos al cambiar de tema
+        const graficosCreados = [];
 
         // Lee un bloque json_script; si no existe devuelve una lista vacía
         function leer(id) {
@@ -330,10 +355,12 @@
         // Opciones que comparten todos los gráficos
         Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif";
         Chart.defaults.font.size = 11;
-        Chart.defaults.color = GRIS;
+        Chart.defaults.color = COLORES.GRIS;
 
+        // El tooltip siempre es oscuro (con texto claro), sin importar el
+        // tema de la página, así que no necesita adaptarse.
         const TOOLTIP = {
-            backgroundColor: TINTA,
+            backgroundColor: 'rgba(15, 23, 42, 0.92)',
             padding: 10,
             cornerRadius: 6,
             displayColors: false,
@@ -349,28 +376,28 @@
             // Relleno degradado suave debajo de la línea
             const contexto = lienzoIngresos.getContext('2d');
             const degradado = contexto.createLinearGradient(0, 0, 0, 260);
-            degradado.addColorStop(0, 'rgba(0, 82, 204, 0.18)');
-            degradado.addColorStop(1, 'rgba(0, 82, 204, 0)');
+            degradado.addColorStop(0, COLORES.DEGRADADO_INICIO);
+            degradado.addColorStop(1, COLORES.DEGRADADO_FIN);
 
-            new Chart(lienzoIngresos, {
+            const graficoIngresos = new Chart(lienzoIngresos, {
                 type: 'line',
                 data: {
                     labels: ingresos.map(i => i.mes),
                     datasets: [{
                         label: 'Ingresos',
                         data: ingresos.map(i => i.valor),
-                        borderColor: AZUL,
+                        borderColor: COLORES.AZUL,
                         backgroundColor: degradado,
                         borderWidth: 2,
                         fill: true,
                         tension: 0,
                         pointRadius: 3,
-                        pointBackgroundColor: AZUL,
-                        pointBorderColor: '#ffffff',
+                        pointBackgroundColor: COLORES.AZUL,
+                        pointBorderColor: COLORES.BORDE_PUNTO,
                         pointBorderWidth: 2,
                         pointHoverRadius: 6,
-                        pointHoverBackgroundColor: AZUL,
-                        pointHoverBorderColor: '#ffffff',
+                        pointHoverBackgroundColor: COLORES.AZUL,
+                        pointHoverBorderColor: COLORES.BORDE_PUNTO,
                         pointHoverBorderWidth: 2,
                         hitRadius: 14,
                     }],
@@ -388,11 +415,11 @@
                     scales: {
                         x: {
                             grid: { display: false },
-                            border: { color: LINEA_GRIS },
+                            border: { color: COLORES.LINEA_GRIS },
                         },
                         y: {
                             beginAtZero: true,
-                            grid: { color: LINEA_GRIS },
+                            grid: { color: COLORES.LINEA_GRIS },
                             border: { display: false },
                             ticks: {
                                 maxTicksLimit: 5,
@@ -404,6 +431,7 @@
                     },
                 },
             });
+            graficosCreados.push(graficoIngresos);
         }
 
 
@@ -412,14 +440,14 @@
         const lienzoCategorias = document.getElementById('graficoCategorias');
 
         if (lienzoCategorias && categorias.length) {
-            new Chart(lienzoCategorias, {
+            const graficoCategorias = new Chart(lienzoCategorias, {
                 type: 'doughnut',
                 data: {
                     labels: categorias.map(c => c.categoria),
                     datasets: [{
                         data: categorias.map(c => c.unidades),
                         backgroundColor: categorias.map((c, i) => PALETA[i % PALETA.length]),
-                        borderColor: '#ffffff',
+                        borderColor: COLORES.BORDE_PUNTO,
                         borderWidth: 2,
                         hoverOffset: 6,
                     }],
@@ -436,6 +464,7 @@
                     },
                 },
             });
+            graficosCreados.push(graficoCategorias);
 
             // Se pintan los puntos de la leyenda con los mismos colores del gráfico
             document.querySelectorAll('.dash-leyenda-punto').forEach(function (punto) {
@@ -450,13 +479,13 @@
         const lienzoVendidos = document.getElementById('graficoVendidos');
 
         if (lienzoVendidos && vendidos.length) {
-            new Chart(lienzoVendidos, {
+            const graficoVendidos = new Chart(lienzoVendidos, {
                 type: 'bar',
                 data: {
                     labels: vendidos.map(v => v.producto),
                     datasets: [{
                         data: vendidos.map(v => v.unidades),
-                        backgroundColor: AZUL,
+                        backgroundColor: COLORES.AZUL,
                         borderRadius: 4,
                         borderSkipped: false,
                         barThickness: 18,
@@ -475,13 +504,13 @@
                     scales: {
                         x: {
                             beginAtZero: true,
-                            grid: { color: LINEA_GRIS },
+                            grid: { color: COLORES.LINEA_GRIS },
                             border: { display: false },
                             ticks: { precision: 0 },
                         },
                         y: {
                             grid: { display: false },
-                            border: { color: LINEA_GRIS },
+                            border: { color: COLORES.LINEA_GRIS },
                         },
                     },
                 },
@@ -494,13 +523,13 @@
         const lienzoEstados = document.getElementById('graficoEstados');
 
         if (lienzoEstados && estados.length) {
-            new Chart(lienzoEstados, {
+            const graficoEstados = new Chart(lienzoEstados, {
                 type: 'bar',
                 data: {
                     labels: estados.map(e => e.estado),
                     datasets: [{
                         data: estados.map(e => e.total),
-                        backgroundColor: AZUL,
+                        backgroundColor: COLORES.AZUL,
                         borderRadius: 4,
                         borderSkipped: false,
                         barThickness: 16,
@@ -519,18 +548,65 @@
                     scales: {
                         x: {
                             beginAtZero: true,
-                            grid: { color: LINEA_GRIS },
+                            grid: { color: COLORES.LINEA_GRIS },
                             border: { display: false },
                             ticks: { precision: 0 },
                         },
                         y: {
                             grid: { display: false },
-                            border: { color: LINEA_GRIS },
+                            border: { color: COLORES.LINEA_GRIS },
                         },
                     },
                 },
             });
+            graficosCreados.push(graficoEstados);
         }
+
+
+        // ---------- Redibujar todo al cambiar el modo oscuro/claro ----------
+        // Chart.js dibuja sobre <canvas>, así que no reacciona solo a las
+        // variables CSS: hay que recalcular colores y volver a pintar.
+        document.addEventListener('intshot:cambio-tema', function (evento) {
+            COLORES = coloresSegunTema(evento.detail.oscuro);
+            Chart.defaults.color = COLORES.GRIS;
+
+            graficosCreados.forEach(function (grafico) {
+                // Ejes: si la escala tenía color de grid o de borde, se actualiza
+                const escalas = grafico.options.scales;
+                if (escalas) {
+                    Object.values(escalas).forEach(function (escala) {
+                        if (escala.grid && 'color' in escala.grid) {
+                            escala.grid.color = COLORES.LINEA_GRIS;
+                        }
+                        if (escala.border && 'color' in escala.border) {
+                            escala.border.color = COLORES.LINEA_GRIS;
+                        }
+                    });
+                }
+
+                const dataset = grafico.data.datasets[0];
+
+                if (grafico.config.type === 'line') {
+                    const contexto = grafico.ctx;
+                    const nuevoDegradado = contexto.createLinearGradient(0, 0, 0, grafico.height);
+                    nuevoDegradado.addColorStop(0, COLORES.DEGRADADO_INICIO);
+                    nuevoDegradado.addColorStop(1, COLORES.DEGRADADO_FIN);
+
+                    dataset.borderColor = COLORES.AZUL;
+                    dataset.backgroundColor = nuevoDegradado;
+                    dataset.pointBackgroundColor = COLORES.AZUL;
+                    dataset.pointBorderColor = COLORES.BORDE_PUNTO;
+                    dataset.pointHoverBackgroundColor = COLORES.AZUL;
+                    dataset.pointHoverBorderColor = COLORES.BORDE_PUNTO;
+                } else if (grafico.config.type === 'doughnut') {
+                    dataset.borderColor = COLORES.BORDE_PUNTO;
+                } else if (grafico.config.type === 'bar') {
+                    dataset.backgroundColor = COLORES.AZUL;
+                }
+
+                grafico.update();
+            });
+        });
 
     })();
 </script>

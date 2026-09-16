@@ -43,6 +43,104 @@
 }
 
 /* ==========================================================================
+   Modo oscuro
+   Reutiliza el mismo atributo que activa el modo oscuro nativo de Bootstrap
+   (data-bs-theme="dark"), asi los componentes de Bootstrap que no controlamos
+   con nuestras variables (modales, navbar, focus rings, etc.) tambien se adaptan.
+   ========================================================================== */
+
+[data-bs-theme="dark"] {
+  --intshot-bg: #0f172a;
+  --intshot-surface: #1e293b;
+  --intshot-surface-muted: #334155;
+  --intshot-border: #334155;
+  --intshot-border-strong: #475569;
+
+  --intshot-text: #f1f5f9;
+  --intshot-text-muted: #94a3b8;
+  --intshot-text-faint: #64748b;
+
+  --intshot-primary: #5b9bf0;
+  --intshot-primary-dark: #7fb2f5;
+  --intshot-primary-soft: rgba(91, 155, 240, 0.15);
+  --intshot-primary-soft-strong: rgba(91, 155, 240, 0.25);
+
+  --intshot-success: #4ade80;
+  --intshot-success-soft: rgba(34, 197, 94, 0.16);
+  --intshot-danger: #f87171;
+  --intshot-danger-soft: rgba(239, 68, 68, 0.16);
+  --intshot-warning: #fbbf24;
+  --intshot-warning-soft: rgba(245, 158, 11, 0.16);
+  --intshot-info: #38bdf8;
+  --intshot-info-soft: rgba(14, 165, 233, 0.16);
+
+  --intshot-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --intshot-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --intshot-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+
+  color-scheme: dark;
+}
+
+/* Colores fijos (no variables) que necesitan su propio ajuste en modo oscuro */
+[data-bs-theme="dark"] .app-topbar {
+  background: rgba(15, 23, 42, 0.9);
+}
+
+[data-bs-theme="dark"] .producto-imagen {
+  background-color: var(--intshot-surface);
+}
+
+/* .bienvenida vive en estilos.css con un degradado claro fijo */
+[data-bs-theme="dark"] .bienvenida {
+  background: radial-gradient(circle at 20% 20%, #1e293b 0%, #0f172a 75%);
+}
+
+/* Los acentos del modo oscuro son tonos pastel: con texto blanco encima el
+   contraste queda por debajo de lo legible, asi que los botones solidos pasan
+   a texto oscuro (el mismo criterio que usa Bootstrap con sus botones claros). */
+[data-bs-theme="dark"] .btn-primary,
+[data-bs-theme="dark"] .btn-primary:hover,
+[data-bs-theme="dark"] .btn-primary:focus,
+[data-bs-theme="dark"] .btn-success,
+[data-bs-theme="dark"] .btn-danger {
+  color: #0b1220;
+}
+
+/* Textos de estado con color fijo (KPIs y badges del dashboard) que estan
+   pensados para fondos "soft" claros: se aclaran para mantener contraste
+   sobre los mismos fondos "soft" ya convertidos a version translucida oscura. */
+[data-bs-theme="dark"] .dash-kpi-icon-warning,
+[data-bs-theme="dark"] .dash-badge-salida,
+[data-bs-theme="dark"] .dash-badge-bajo {
+  color: #fbbf24;
+}
+
+[data-bs-theme="dark"] .dash-badge-entrada {
+  color: #38bdf8;
+}
+
+[data-bs-theme="dark"] .dash-badge-pago {
+  color: #4ade80;
+}
+
+[data-bs-theme="dark"] .dash-badge-agotado {
+  color: #f87171;
+}
+
+/* Login / registro: el panel lateral y el boton principal tienen colores
+   propios en auth.css que no se leen bien con la paleta clara invertida. */
+[data-bs-theme="dark"] .auth-split-side {
+  background: linear-gradient(160deg, #1d4ed8 0%, #16307a 60%, #0b1220 100%);
+}
+
+[data-bs-theme="dark"] .btn-auth,
+[data-bs-theme="dark"] .btn-auth:hover {
+  background-color: var(--intshot-primary);
+  border-color: var(--intshot-primary);
+  color: #0b1220;
+}
+
+/* ==========================================================================
    Base
    ========================================================================== */
 
@@ -309,6 +407,79 @@ h1, h2, h3, h4, h5, h6 {
   gap: 0.6rem;
   font-size: 0.8rem;
   color: var(--intshot-text-muted);
+}
+
+/* --- Switch de modo oscuro/claro (topbar privada y navbar publica) --- */
+.theme-toggle {
+  position: relative;
+  width: 50px;
+  height: 27px;
+  flex-shrink: 0;
+  padding: 0;
+  border: 1px solid var(--intshot-border-strong);
+  border-radius: var(--intshot-radius-pill);
+  background: var(--intshot-surface-muted);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--intshot-primary);
+  outline-offset: 2px;
+}
+
+.theme-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: var(--intshot-surface);
+  box-shadow: var(--intshot-shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.theme-toggle-thumb .material-symbols-outlined {
+  font-size: 13px;
+  color: var(--intshot-text-muted);
+}
+
+[data-bs-theme="dark"] .theme-toggle {
+  background: var(--intshot-text);
+  border-color: var(--intshot-text);
+}
+
+[data-bs-theme="dark"] .theme-toggle-thumb {
+  transform: translateX(23px);
+  background: var(--intshot-surface);
+}
+
+[data-bs-theme="dark"] .theme-toggle-thumb .material-symbols-outlined {
+  color: var(--intshot-bg);
+}
+
+/* Quien prefiera menos animacion no ve deslizarse el switch */
+@media (prefers-reduced-motion: reduce) {
+  .theme-toggle,
+  .theme-toggle-thumb {
+    transition: none;
+  }
+}
+
+/* --- Navbar de las paginas publicas (landing y catalogo) --- */
+/* Antes traia los colores en un style inline; con variables sigue el tema. */
+.publico-navbar {
+  background-color: var(--intshot-surface);
+  border-bottom: 1px solid var(--intshot-border);
+}
+
+.publico-navbar-marca {
+  font-weight: 800;
+  color: var(--intshot-primary-dark);
 }
 
 /* --- Contenido principal --- */

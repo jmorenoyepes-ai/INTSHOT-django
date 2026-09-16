@@ -21,17 +21,19 @@
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon_io/favicon-32x32.png' %}">
     <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon_io/favicon-16x16.png' %}">
     <link rel="manifest" href="{% static 'favicon_io/site.webmanifest' %}">
+
+    {% include 'tema.html' %}
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg" style="background-color: #ffffff; border-bottom: 1px solid #e2e8f0;">
+    <nav class="navbar navbar-expand-lg publico-navbar">
         <div class="container-fluid px-4">
             <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'inventario:landing' %}">
                 {% if configuracion.logo %}
                 <img src="{{ configuracion.logo.url }}" alt="{{ configuracion.nombre_empresa }}" width="36" height="36"
                     style="border-radius:8px;">
                 {% endif %}
-                <span style="font-weight:800; color:#003d9b;">{{ configuracion.nombre_empresa }}</span>
+                <span class="publico-navbar-marca">{{ configuracion.nombre_empresa }}</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
@@ -47,7 +49,10 @@
                         <a class="nav-link" href="{% url 'inventario:catalogo_publico' %}">Catálogo</a>
                     </li>
                 </ul>
-                <a class="btn btn-primary btn-sm" href="{% url 'inventario:login' %}">Iniciar sesión</a>
+                <div class="d-flex align-items-center gap-3">
+                    {% include 'tema_switch.html' %}
+                    <a class="btn btn-primary btn-sm" href="{% url 'inventario:login' %}">Iniciar sesión</a>
+                </div>
             </div>
         </div>
     </nav>
