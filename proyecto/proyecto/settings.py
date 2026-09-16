@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -23,7 +24,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-l9v^x9t0jv598v%werhl%=0w##&f*0d0%huusyngqm5pb4eg3s'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# En PythonAnywhere existe la variable PYTHONANYWHERE_SITE, asi que alla queda
+# en False automaticamente. En local (runserver) queda en True, que es lo que
+# hace que Django sirva los archivos de static/ sin necesitar un servidor web.
+DEBUG = "PYTHONANYWHERE_SITE" not in os.environ
 
 ALLOWED_HOSTS = ['*']
 

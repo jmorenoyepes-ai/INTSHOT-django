@@ -82,7 +82,7 @@
                     <a href="{% url 'inventario:detalle_pedido' i.id %}" class="btn btn-sm btn-outline-secondary">Ver Detalle</a>
 
                     {% if request.session.logueado.rol == "Cliente" %}
-                        {% if not i.pagado and i.estado == "Pendiente" %}
+                        {% if not i.pagado and i.estado != "Cancelado" %}
                             <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalPago{{ i.id }}">
                                 Pagar
                             </button>
@@ -125,13 +125,18 @@
                             {% csrf_token %}
                             <select name="estado" class="form-select form-select-sm" style="width:130px;">
                                 <option value="Pendiente" {% if i.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                                {% if i.pagado %}
                                 <option value="En proceso" {% if i.estado == 'En proceso' %}selected{% endif %}>En proceso</option>
                                 <option value="Enviado" {% if i.estado == 'Enviado' %}selected{% endif %}>Enviado</option>
                                 <option value="Entregado" {% if i.estado == 'Entregado' %}selected{% endif %}>Entregado</option>
+                                {% endif %}
                                 <option value="Cancelado">Cancelado</option>
                             </select>
                             <button type="submit" class="btn btn-sm btn-primary">✓</button>
                         </form>
+                        {% if not i.pagado %}
+                            <span class="text-muted small">Esperando pago del cliente</span>
+                        {% endif %}
                         {% endif %}
                     {% endif %}
                 </td>

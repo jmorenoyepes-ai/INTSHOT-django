@@ -1058,6 +1058,11 @@ def actualizar_estado_pedido(request, id):
             messages.error(request, "Debe seleccionar un estado válido")
             return redirect("inventario:pedidos")
 
+        # Un pedido sin pago solo puede quedar Pendiente o Cancelado
+        if nuevo_estado not in ["Pendiente", "Cancelado"] and not q.pagado():
+            messages.warning(request, f"El Pedido #{q.id} no tiene pago registrado, no se puede pasar a '{nuevo_estado}'")
+            return redirect("inventario:pedidos")
+
         # Si se cancela un pedido que ya fue pagado, devolver stock
         if nuevo_estado == "Cancelado" and q.estado != "Cancelado":
             if q.pagado():
@@ -1142,9 +1147,9 @@ def registrar_pago(request, id):
             messages.warning(request, "Este pedido ya tiene un pago registrado.")
             return redirect("inventario:pedidos")
 
-        # Solo se puede pagar si el pedido está Pendiente o En proceso
-        if pedido.estado not in ["Pendiente", "En proceso"]:
-            messages.warning(request, f"No se puede pagar un pedido en estado '{pedido.estado}'.")
+        # No se puede pagar un pedido cancelado
+        if pedido.estado == "Cancelado":
+            messages.warning(request, "No se puede pagar un pedido cancelado.")
             return redirect("inventario:pedidos")
 
         Pago.objects.create(
