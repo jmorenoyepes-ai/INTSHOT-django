@@ -160,3 +160,36 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
+
+# Correo electrónico
+# Las credenciales se leen del archivo .env (ignorado por git) o del
+# entorno del sistema. En desarrollo, si no se configura nada, los correos
+# se imprimen en la terminal en lugar de enviarse.
+
+def _cargar_env():
+    archivo = Path(__file__).resolve().parent.parent / ".env"
+    if archivo.exists():
+        for linea in archivo.read_text(encoding="utf-8").splitlines():
+            linea = linea.strip()
+            if not linea or linea.startswith("#") or "=" not in linea:
+                continue
+            clave, valor = linea.split("=", 1)
+            os.environ.setdefault(clave.strip(), valor.strip().strip('"').strip("'"))
+
+
+_cargar_env()
+
+EMAIL_BACKEND = os.environ.get(
+    "EMAIL_BACKEND",
+    "django.core.mail.backends.console.EmailBackend",
+)
+EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
+EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
+EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
+EMAIL_USE_TLS = os.environ.get("EMAIL_USE_TLS", "True") == "True"
+DEFAULT_FROM_EMAIL = os.environ.get(
+    "DEFAULT_FROM_EMAIL",
+    EMAIL_HOST_USER or "no-reply@intshot.com",
+)
+

@@ -13,6 +13,8 @@ urlpatterns = [
     path('login/', views.login, name="login"),
     path('logout/', views.logout, name="logout"),
     path('registrarse/', views.registrarse, name="registrarse"),
+    path('recuperar-password/', views.solicitar_password, name="solicitar_password"),
+    path('restablecer-password/<uuid:token>/', views.restablecer_password, name="restablecer_password"),
     
     path('inicio/', views.inicio, name="inicio"),
     path('base/', views.base, name="base"),

@@ -1,0 +1,25 @@
+{% extends 'emails/base_email.html' %}
+
+{% block contenido %}
+    <h2 style="margin-top:0; color:#0f172a;">¡Hola {{ usuario.nombre }}!</h2>
+
+    <p style="color:#334155; line-height:1.6;">
+        Tu cuenta en <strong>INTSHOT</strong> fue creada correctamente.
+        Ya puedes iniciar sesión para gestionar tus productos, carrito y pedidos.
+    </p>
+
+    <p style="color:#334155;">
+        <strong>Correo registrado:</strong> {{ usuario.correo }}<br>
+        <strong>Rol:</strong> {{ usuario.get_rol_display }}
+    </p>
+
+    {% if url_login %}
+        <p style="text-align:center; margin:32px 0;">
+            <a href="{{ url_login }}" style="display:inline-block; background-color:#0f172a; color:#ffffff; text-decoration:none; padding:12px 28px; border-radius:8px; font-weight:bold;">Iniciar sesión</a>
+        </p>
+    {% endif %}
+
+    <p style="color:#64748b; font-size:13px;">
+        Si tú no creaste esta cuenta, puedes ignorar este correo.
+    </p>
+{% endblock %}

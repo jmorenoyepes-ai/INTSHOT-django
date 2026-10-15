@@ -6,6 +6,7 @@ from django.db.models import Sum, Count, F, DecimalField
 from django.utils import timezone
 from .models import *
 from .utilidades import *
+from .correo import enviar_bienvenida, enviar_pedido_confirmado, enviar_recuperacion
 
 
 # Página de inicio pública (landing)
@@ -99,7 +100,17 @@ def login(request):
             return render(request, "Login/login.html", contexto)
 
         try:
-            q = Usuario.objects.get(correo = usuario, password = clave)
+            q = Usuario.objects.get(correo = usuario)
+
+            if not verificar_password(q, clave):
+                raise Usuario.DoesNotExist
+
+            # Las contraseñas antiguas están en texto plano: se encriptan
+            # automáticamente en el primer inicio de sesión
+            if password_en_texto_plano(q):
+                guardar_password(q, clave)
+                q.save()
+
             messages.success(request, "Bienvenido!!!!!!!!!!")
             request.session["logueado"] = {
                 "id" :q.id,
@@ -157,10 +168,11 @@ def registrarse(request):
                 apellido = apellido,
                 correo = correo,
                 telefono = telefono,
-                password = password,
             )
+            guardar_password(t, password)
             t.save()
             messages.success(request, "Usuario guardado con éxito!!!")
+            enviar_bienvenida(t, request)
         except Exception as e:
             messages.error(request, f"Error : {e}")
 
@@ -168,6 +180,74 @@ def registrarse(request):
 
     else:
         return render(request, "Login/registro_formulario.html")
+
+
+def solicitar_password(request):
+    # Formulario para pedir el enlace de recuperación por correo
+    if request.method == "POST":
+        correo = request.POST.get("correo")
+
+        errores = []
+        if campo_vacio(correo) or not correo_valido(correo):
+            errores.append("Debe digitar un correo electrónico válido. Ejemplo: nombre@correo.com")
+
+        if errores:
+            mostrar_errores(request, errores)
+            contexto = {"datos": request.POST}
+            return render(request, "Login/password_solicitar.html", contexto)
+
+        # El mensaje es el mismo exista o no el correo, para no revelar
+        # qué correos están registrados en el sistema
+        usuario = Usuario.objects.filter(correo=correo).first()
+        if usuario:
+            enviar_recuperacion(usuario, request)
+
+        messages.success(request, "Si el correo está registrado, recibirás un enlace para restablecer tu contraseña.")
+        return redirect("inventario:login")
+
+    else:
+        if request.session.get("logueado", False):
+            return redirect("inventario:inicio")
+        else:
+            return render(request, "Login/password_solicitar.html")
+
+
+def restablecer_password(request, token):
+    # Formulario de la nueva contraseña, accesible solo con el token del correo
+    q = TokenRecuperacion.objects.filter(token=token).select_related("usuario").first()
+
+    if not q or not q.es_valido():
+        messages.error(request, "El enlace para restablecer la contraseña es inválido o ya expiró. Solicita uno nuevo.")
+        return redirect("inventario:solicitar_password")
+
+    if request.method == "POST":
+        password = request.POST.get("password")
+        veri_password = request.POST.get("veri_password")
+
+        errores = []
+        if campo_vacio(password) or len(password) < 5:
+            errores.append("La contraseña debe tener mínimo 5 caracteres")
+        elif password != veri_password:
+            errores.append("Las contraseñas no coinciden")
+
+        if errores:
+            mostrar_errores(request, errores)
+            contexto = {"datos": request.POST, "token": token}
+            return render(request, "Login/password_restablecer.html", contexto)
+
+        usuario = q.usuario
+        guardar_password(usuario, password)
+        usuario.save()
+
+        q.usado = True
+        q.save()
+
+        messages.success(request, "Tu contraseña fue restablecida correctamente. Ya puedes iniciar sesión.")
+        return redirect("inventario:login")
+
+    else:
+        contexto = {"token": token}
+        return render(request, "Login/password_restablecer.html", contexto)
 
 @autorizacion()
 def logout(request):
@@ -378,7 +458,7 @@ def eliminar_usuario(request, id):
         if q.rol == "Administrador":
             messages.error(request, f"No se puede eliminar un usuario administrador")
             return redirect("inventario:usuarios")
-        elif q.correo == "intshotadmin@gmail.com" and q.password == "intshotadmin12345":
+        elif q.correo == "intshotadmin@gmail.com" and verificar_password(q, "intshotadmin12345"):
             messages.error(request, f"No se puede eliminar el super administrador")
             return redirect("inventario:usuarios")
         else:
@@ -437,8 +517,8 @@ def crear_usuario(request):
                 correo = correo,
                 telefono = telefono,
                 rol = rol,
-                password = password,
             )
+            guardar_password(t, password)
             t.save()
             messages.success(request, "Usuario guardado con éxito!!!")
         except Exception as e:
@@ -488,7 +568,7 @@ def actualizar_usuario(request, id):
             q.telefono = telefono
             q.rol = rol
 
-            if q.correo == "intshotadmin@gmail.com" and q.password == "intshotadmin12345":
+            if q.correo == "intshotadmin@gmail.com" and verificar_password(q, "intshotadmin12345"):
                 messages.error(request, f"No se puede editar el super administrador")
                 return redirect("inventario:usuarios")
             else:
@@ -1043,6 +1123,9 @@ def crear_pedido(request):
             )
 
         carrito.delete()
+
+        # Se envía el detalle del pedido al correo del cliente
+        enviar_pedido_confirmado(pedido)
 
         # Primero se avisa de los productos que no se pudieron incluir
         for nombre in eliminados:

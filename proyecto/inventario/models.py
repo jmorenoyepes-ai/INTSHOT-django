@@ -1,4 +1,8 @@
+import uuid
+from datetime import timedelta
+
 from django.db import models
+from django.utils import timezone
 
 class Usuario(models.Model):
     nombre = models.CharField(max_length=100)
@@ -243,6 +247,23 @@ class Beneficio(models.Model):
 
     def __str__(self):
         return self.titulo
+
+
+class TokenRecuperacion(models.Model):
+    # Token de un solo uso y con expiración para restablecer la contraseña
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    token = models.UUIDField(unique=True, default=uuid.uuid4, editable=False)
+    creado = models.DateTimeField(auto_now_add=True)
+    usado = models.BooleanField(default=False)
+
+    DURACION = timedelta(hours=1)
+
+    def es_valido(self):
+        no_vencido = timezone.now() - self.creado < self.DURACION
+        return not self.usado and no_vencido
+
+    def __str__(self):
+        return f"Token de {self.usuario.correo}"
 
 
 def obtener_configuracion():

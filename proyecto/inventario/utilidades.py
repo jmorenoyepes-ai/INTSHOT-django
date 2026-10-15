@@ -1,5 +1,6 @@
 from django.shortcuts import redirect
 from django.contrib import messages
+from django.contrib.auth.hashers import make_password, check_password
 from django.core.paginator import Paginator
 
 def autorizacion(roles=[]):
@@ -109,3 +110,24 @@ def formato_pesos(valor):
     texto = "{:,}".format(numero).replace(",", ".")
 
     return f"$ {texto}"
+
+
+# Contraseñas encriptadas
+
+def password_en_texto_plano(usuario):
+    # Las contraseñas nuevas se guardan con make_password (empiezan con pbkdf2_)
+    return not usuario.password.startswith("pbkdf2_")
+
+
+def guardar_password(usuario, clave):
+    # Encripta la contraseña y la deja lista para guardar en el usuario
+    usuario.password = make_password(clave)
+
+
+def verificar_password(usuario, clave):
+    # Compara la contraseña. Si el usuario todavía tiene la contraseña en
+    # texto plano (usuarios antiguos), se compara directamente y luego se
+    # encripta automáticamente al volver a iniciar sesión.
+    if password_en_texto_plano(usuario):
+        return usuario.password == clave
+    return check_password(clave, usuario.password)
