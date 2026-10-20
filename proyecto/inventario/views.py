@@ -1,12 +1,31 @@
-from django.shortcuts import render, redirect
+import logging
+
+from django.conf import settings
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib import messages
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
+from django.views.decorators.http import require_POST
 from django.db.models import Sum, Count, F, DecimalField
 from django.utils import timezone
 from .models import *
 from .utilidades import *
 from .correo import enviar_bienvenida, enviar_pedido_confirmado, enviar_recuperacion
+
+logger = logging.getLogger(__name__)
+
+# Largo mínimo de las contraseñas nuevas
+PASSWORD_MINIMO = 8
+
+
+# Páginas de error (se muestran cuando DEBUG = False)
+
+def pagina_404(request, exception=None):
+    return render(request, "404.html", status=404)
+
+
+def pagina_500(request):
+    return render(request, "500.html", status=500)
 
 
 # Página de inicio pública (landing)
@@ -99,11 +118,19 @@ def login(request):
             contexto = {"datos": request.POST}
             return render(request, "Login/login.html", contexto)
 
+        # Protección contra fuerza bruta: varios intentos fallidos seguidos
+        # bloquean ese correo por unos minutos
+        if login_bloqueado(usuario):
+            messages.error(request, f"Demasiados intentos fallidos. Espera {settings.LOGIN_BLOQUEO_MINUTOS} minutos e intenta de nuevo.")
+            return redirect("inventario:login")
+
         try:
             q = Usuario.objects.get(correo = usuario)
 
             if not verificar_password(q, clave):
                 raise Usuario.DoesNotExist
+
+            limpiar_intentos(usuario)
 
             # Las contraseñas antiguas están en texto plano: se encriptan
             # automáticamente en el primer inicio de sesión
@@ -119,6 +146,7 @@ def login(request):
             }
             return redirect("inventario:inicio")
         except Usuario.DoesNotExist:
+            registrar_intento_fallido(usuario)
             messages.error(request, "Usuario o contraseña incorrectos...")
             request.session["logueado"] = None
             return redirect("inventario:login")
@@ -152,8 +180,8 @@ def registrarse(request):
             errores.append("El teléfono es obligatorio y solo puede tener números")
         elif len(telefono.strip()) < 7:
             errores.append("El teléfono debe tener mínimo 7 números")
-        if campo_vacio(password) or len(password) < 5:
-            errores.append("La contraseña debe tener mínimo 5 caracteres")
+        if campo_vacio(password) or len(password) < PASSWORD_MINIMO:
+            errores.append(f"La contraseña debe tener mínimo {PASSWORD_MINIMO} caracteres")
         elif password != veri_password:
             errores.append("Las contraseñas no coinciden")
 
@@ -225,8 +253,8 @@ def restablecer_password(request, token):
         veri_password = request.POST.get("veri_password")
 
         errores = []
-        if campo_vacio(password) or len(password) < 5:
-            errores.append("La contraseña debe tener mínimo 5 caracteres")
+        if campo_vacio(password) or len(password) < PASSWORD_MINIMO:
+            errores.append(f"La contraseña debe tener mínimo {PASSWORD_MINIMO} caracteres")
         elif password != veri_password:
             errores.append("Las contraseñas no coinciden")
 
@@ -451,15 +479,16 @@ def ver_usuarios(request):
     return render(request, "Usuario/usuarios.html", contexto)
 
 @autorizacion(["Administrador"])
+@require_POST
 def eliminar_usuario(request, id):
     try:
         q = Usuario.objects.get(pk=id)
 
-        if q.rol == "Administrador":
-            messages.error(request, f"No se puede eliminar un usuario administrador")
+        if q.id == request.session["logueado"]["id"]:
+            messages.error(request, "No puedes eliminar tu propia cuenta")
             return redirect("inventario:usuarios")
-        elif q.correo == "intshotadmin@gmail.com" and verificar_password(q, "intshotadmin12345"):
-            messages.error(request, f"No se puede eliminar el super administrador")
+        elif q.rol == "Administrador":
+            messages.error(request, f"No se puede eliminar un usuario administrador")
             return redirect("inventario:usuarios")
         else:
             q.delete()
@@ -500,8 +529,8 @@ def crear_usuario(request):
             errores.append("El teléfono debe tener mínimo 7 números")
         if campo_vacio(rol):
             errores.append("Debe seleccionar el rol del usuario")
-        if campo_vacio(password) or len(password) < 5:
-            errores.append("La contraseña debe tener mínimo 5 caracteres")
+        if campo_vacio(password) or len(password) < PASSWORD_MINIMO:
+            errores.append(f"La contraseña debe tener mínimo {PASSWORD_MINIMO} caracteres")
         elif password != veri_password:
             errores.append("Las contraseñas no coinciden")
 
@@ -566,21 +595,27 @@ def actualizar_usuario(request, id):
             q.apellido = apellido
             q.correo = correo
             q.telefono = telefono
-            q.rol = rol
 
-            if q.correo == "intshotadmin@gmail.com" and verificar_password(q, "intshotadmin12345"):
-                messages.error(request, f"No se puede editar el super administrador")
+            # El sistema siempre debe conservar al menos un administrador
+            ultimo_admin = (
+                q.rol == "Administrador"
+                and rol != "Administrador"
+                and not Usuario.objects.filter(rol="Administrador").exclude(pk=q.pk).exists()
+            )
+            if ultimo_admin:
+                messages.error(request, "No se puede cambiar el rol del único administrador del sistema")
                 return redirect("inventario:usuarios")
-            else:
-                q.save()
-                messages.success(request, "Usuario actualizado con éxito!!!")
+
+            q.rol = rol
+            q.save()
+            messages.success(request, "Usuario actualizado con éxito!!!")
         except Exception as e:
             messages.error(request, f"Error : {e}")
 
         return redirect ('inventario:usuarios')
 
     else:
-        q = Usuario.objects.get(pk = id)
+        q = get_object_or_404(Usuario, pk=id)
         contexto = {
             "datos" : q
         }
@@ -609,6 +644,7 @@ def ver_productos(request):
     return render(request, "Inventarios/productos.html", contexto)
 
 @autorizacion(["Empleado","Administrador"])
+@require_POST
 def eliminar_producto(request, id):
     try:
         q = Producto.objects.get(pk=id)
@@ -730,7 +766,7 @@ def actualizar_producto(request, id):
         return redirect('inventario:productos')
 
     else:
-        q = Producto.objects.get(pk=id)
+        q = get_object_or_404(Producto, pk=id)
 
         contexto = {
             "datos": q
@@ -783,6 +819,7 @@ def ver_proveedores(request):
     return render(request, "Proveedor/proveedor.html", contexto)
 
 @autorizacion(["Administrador", "Empleado"])
+@require_POST
 def eliminar_proveedor(request, id):
     try:
         q = Proveedor.objects.get(pk=id)
@@ -877,7 +914,7 @@ def actualizar_proveedor(request, id):
         return redirect ('inventario:proveedores')
 
     else:
-        q = Proveedor.objects.get(pk = id)
+        q = get_object_or_404(Proveedor, pk=id)
         contexto = {
             "datos" : q
         }
@@ -926,7 +963,7 @@ def ver_detalle_producto(request, id):
 
 @autorizacion(["Cliente"])
 def ver_carrito(request):
-    usuario = Usuario.objects.get(pk=request.session["logueado"]["id"])
+    usuario = usuario_logueado(request)
     t = Carrito.objects.filter(usuario=usuario)
     total = sum(item.subtotal() for item in t)
 
@@ -966,12 +1003,16 @@ def agregar_carrito(request, id):
     return redirect("inventario:catalogo")
 
 @autorizacion(["Cliente"])
+@require_POST
 def eliminar_carrito(request, id):
     try:
-        q = Carrito.objects.get(pk=id)
+        # Solo se puede borrar un producto del carrito propio
+        q = Carrito.objects.get(pk=id, usuario_id=request.session["logueado"]["id"])
         nombre_producto = q.producto.nombre
         q.delete()
         messages.success(request, f"Producto '{nombre_producto}' eliminado del carrito")
+    except Carrito.DoesNotExist:
+        messages.warning(request, "Ese producto no está en tu carrito")
     except Exception as e:
         messages.error(request, f"Error: {e}")
 
@@ -980,7 +1021,8 @@ def eliminar_carrito(request, id):
 @autorizacion(["Cliente"])
 def actualizar_carrito(request, id):
     try:
-        q = Carrito.objects.get(pk=id)
+        # Solo se puede modificar el carrito propio
+        q = Carrito.objects.get(pk=id, usuario_id=request.session["logueado"]["id"])
         cantidad = request.POST.get("cantidad")
 
         # Validaciones del formulario
@@ -999,6 +1041,8 @@ def actualizar_carrito(request, id):
         q.cantidad = int(float(cantidad))
         q.save()
         messages.success(request, f"Cantidad de '{q.producto.nombre}' actualizada")
+    except Carrito.DoesNotExist:
+        messages.warning(request, "Ese producto no está en tu carrito")
     except Exception as e:
         messages.error(request, f"Error: {e}")
 
@@ -1111,18 +1155,20 @@ def crear_pedido(request):
                 messages.warning(request, f"No hay stock suficiente de {item.producto.nombre}")
                 return redirect("inventario:carrito")
 
-        pedido = Pedido(usuario=usuario)
-        pedido.save()
+        # Todo o nada: si algo falla a la mitad no queda un pedido incompleto
+        with transaction.atomic():
+            pedido = Pedido(usuario=usuario)
+            pedido.save()
 
-        for item in carrito:
-            DetallePedido.objects.create(
-                pedido=pedido,
-                producto=item.producto,
-                cantidad=item.cantidad,
-                precio_unitario=item.producto.precio
-            )
+            for item in carrito:
+                DetallePedido.objects.create(
+                    pedido=pedido,
+                    producto=item.producto,
+                    cantidad=item.cantidad,
+                    precio_unitario=item.producto.precio
+                )
 
-        carrito.delete()
+            carrito.delete()
 
         # Se envía el detalle del pedido al correo del cliente
         enviar_pedido_confirmado(pedido)
@@ -1185,29 +1231,34 @@ def actualizar_estado_pedido(request, id):
             messages.warning(request, f"El Pedido #{q.id} no tiene pago registrado, no se puede pasar a '{nuevo_estado}'")
             return redirect("inventario:pedidos")
 
-        # Si se cancela un pedido que ya fue pagado, devolver stock
-        if nuevo_estado == "Cancelado" and q.estado != "Cancelado":
-            if q.pagado():
-                detalles = DetallePedido.objects.filter(pedido=q)
-                for d in detalles:
-                    d.producto.stock += d.cantidad
-                    d.producto.save()
-                    MovimientoInventario.objects.create(
-                        producto=d.producto,
-                        cantidad=d.cantidad,
-                        tipo="Entrada",
-                        descripcion=f"Cancelación Pedido #{q.id}"
-                    )
-                # Registrar egreso contable por devolución
-                MovimientoContable.objects.create(
-                    tipo="Egreso",
-                    valor=q.total(),
-                    descripcion=f"Devolución por cancelación Pedido #{q.id}",
-                    pedido=q
-                )
+        # Un pedido cancelado no se puede reactivar
+        if q.estado == "Cancelado" and nuevo_estado != "Cancelado":
+            messages.warning(request, f"El Pedido #{q.id} está cancelado y no se puede reactivar")
+            return redirect("inventario:pedidos")
 
-        q.estado = nuevo_estado
-        q.save()
+        with transaction.atomic():
+            # Si se cancela un pedido que ya fue pagado, devolver stock
+            if nuevo_estado == "Cancelado" and q.estado != "Cancelado":
+                if q.pagado():
+                    detalles = DetallePedido.objects.filter(pedido=q).select_related("producto")
+                    for d in detalles:
+                        Producto.objects.filter(pk=d.producto_id).update(stock=F("stock") + d.cantidad)
+                        MovimientoInventario.objects.create(
+                            producto=d.producto,
+                            cantidad=d.cantidad,
+                            tipo="Entrada",
+                            descripcion=f"Cancelación Pedido #{q.id}"
+                        )
+                    # Registrar egreso contable por devolución
+                    MovimientoContable.objects.create(
+                        tipo="Egreso",
+                        valor=q.total(),
+                        descripcion=f"Devolución por cancelación Pedido #{q.id}",
+                        pedido=q
+                    )
+
+            q.estado = nuevo_estado
+            q.save()
         messages.success(request, "Estado actualizado")
     except Exception as e:
         messages.error(request, f"Error: {e}")
@@ -1216,7 +1267,13 @@ def actualizar_estado_pedido(request, id):
 
 @autorizacion()
 def ver_detalle_pedido(request, id):
-    pedido = Pedido.objects.get(pk=id)
+    pedido = get_object_or_404(Pedido, pk=id)
+
+    # Un cliente solo puede ver sus propios pedidos
+    if es_cliente(request) and pedido.usuario_id != request.session["logueado"]["id"]:
+        messages.warning(request, "Ese pedido no te pertenece")
+        return redirect("inventario:pedidos")
+
     detalles = DetallePedido.objects.filter(pedido=pedido)
     contexto = {
         "pedido": pedido,
@@ -1250,9 +1307,15 @@ def ver_pagos(request):
     return render(request, "Pago/pagos.html", contexto)
 
 @autorizacion(["Cliente"])
+@require_POST
 def registrar_pago(request, id):
     try:
-        pedido = Pedido.objects.get(pk=id)
+        # Solo el dueño del pedido puede pagarlo
+        pedido = Pedido.objects.filter(pk=id, usuario_id=request.session["logueado"]["id"]).first()
+        if not pedido:
+            messages.warning(request, "Ese pedido no existe o no te pertenece")
+            return redirect("inventario:pedidos")
+
         metodo = request.POST.get("metodo")
 
         # Validaciones del formulario
@@ -1274,35 +1337,45 @@ def registrar_pago(request, id):
             messages.warning(request, "No se puede pagar un pedido cancelado.")
             return redirect("inventario:pedidos")
 
-        Pago.objects.create(
-            pedido=pedido,
-            valor=pedido.total(),
-            metodo=metodo
-        )
-
-        # Al confirmar el pago, descontar el inventario
-        detalles = DetallePedido.objects.filter(pedido=pedido)
-        for d in detalles:
-            if d.cantidad > d.producto.stock:
-                messages.warning(request, f"No hay stock suficiente de {d.producto.nombre}. Contacta con nosotros.")
-            d.producto.stock -= d.cantidad
-            if d.producto.stock < 0:
-                d.producto.stock = 0
-            d.producto.save()
-            MovimientoInventario.objects.create(
-                producto=d.producto,
-                cantidad=d.cantidad,
-                tipo="Salida",
-                descripcion=f"Pago Pedido #{pedido.id}"
+        with transaction.atomic():
+            # Se bloquean los productos del pedido mientras se cobra, para que
+            # dos pagos al mismo tiempo no descuenten el mismo stock
+            # (en SQLite el bloqueo no aplica, en MySQL/PostgreSQL sí)
+            detalles = list(
+                DetallePedido.objects.filter(pedido=pedido)
+                .select_related("producto")
+                .select_for_update(of=("producto",))
             )
 
-        # Registrar ingreso contable
-        MovimientoContable.objects.create(
-            tipo="Ingreso",
-            valor=pedido.total(),
-            descripcion=f"Pago Pedido #{pedido.id} - {metodo}",
-            pedido=pedido
-        )
+            # Antes de cobrar se verifica que haya mercancía para todo el pedido
+            sin_stock = [d.producto.nombre for d in detalles if d.cantidad > d.producto.stock]
+            if sin_stock:
+                messages.warning(request, f"No hay stock suficiente de: {', '.join(sin_stock)}. El pago no se registró, contacta con nosotros.")
+                return redirect("inventario:pedidos")
+
+            Pago.objects.create(
+                pedido=pedido,
+                valor=pedido.total(),
+                metodo=metodo
+            )
+
+            # Al confirmar el pago, descontar el inventario
+            for d in detalles:
+                Producto.objects.filter(pk=d.producto_id).update(stock=F("stock") - d.cantidad)
+                MovimientoInventario.objects.create(
+                    producto=d.producto,
+                    cantidad=d.cantidad,
+                    tipo="Salida",
+                    descripcion=f"Pago Pedido #{pedido.id}"
+                )
+
+            # Registrar ingreso contable
+            MovimientoContable.objects.create(
+                tipo="Ingreso",
+                valor=pedido.total(),
+                descripcion=f"Pago Pedido #{pedido.id} - {metodo}",
+                pedido=pedido
+            )
 
         messages.success(request, "Pago registrado correctamente")
     except Exception as e:
@@ -1374,7 +1447,7 @@ def crear_compra(request):
 
 @autorizacion(["Administrador", "Empleado"])
 def ver_detalle_compra(request, id):
-    compra = Compra.objects.get(pk=id)
+    compra = get_object_or_404(Compra, pk=id)
     detalles = DetalleCompra.objects.filter(compra=compra)
     contexto = {
         "compra": compra,
@@ -1384,6 +1457,12 @@ def ver_detalle_compra(request, id):
 
 @autorizacion(["Administrador", "Empleado"])
 def agregar_detalle_compra(request, id):
+    compra = get_object_or_404(Compra, pk=id)
+
+    if compra.estado != "Pendiente":
+        messages.warning(request, "No se pueden agregar productos a una compra que ya fue recibida")
+        return redirect("inventario:detalle_compra", id=id)
+
     if request.method == "POST":
         producto_id = request.POST.get("producto")
         cantidad = request.POST.get("cantidad")
@@ -1410,13 +1489,12 @@ def agregar_detalle_compra(request, id):
             mostrar_errores(request, errores)
             contexto = {
                 "productos": Producto.objects.all(),
-                "compra": Compra.objects.get(pk=id),
+                "compra": compra,
                 "datos": request.POST
             }
             return render(request, "Compra/formulario_detalle_compra.html", contexto)
 
         try:
-            compra = Compra.objects.get(pk=id)
             producto = Producto.objects.get(pk=producto_id)
 
             detalle = DetalleCompra(
@@ -1436,15 +1514,19 @@ def agregar_detalle_compra(request, id):
     else:
         contexto = {
             "productos": Producto.objects.all(),
-            "compra": Compra.objects.get(pk=id)
+            "compra": compra
         }
         return render(request, "Compra/formulario_detalle_compra.html", contexto)
 
 @autorizacion(["Administrador", "Empleado"])
+@require_POST
 def eliminar_detalle_compra(request, id):
     try:
         q = DetalleCompra.objects.get(pk=id)
         compra_id = q.compra.id
+        if q.compra.estado != "Pendiente":
+            messages.warning(request, "No se pueden quitar productos de una compra que ya fue recibida")
+            return redirect("inventario:detalle_compra", id=compra_id)
         q.delete()
         messages.success(request, "Producto eliminado de la compra")
         return redirect("inventario:detalle_compra", id=compra_id)
@@ -1456,7 +1538,7 @@ def eliminar_detalle_compra(request, id):
 @autorizacion(["Administrador", "Empleado"])
 def recibir_compra(request, id):
 
-    compra = Compra.objects.get(pk=id)
+    compra = get_object_or_404(Compra, pk=id)
 
     if compra.estado != "Pendiente":
         messages.warning(request, "La compra ya fue recibida")
@@ -1493,58 +1575,60 @@ def recibir_compra(request, id):
             return render(request, "Compra/recibir_compra.html", contexto)
 
         try:
-            es_completa = True
-            total_egreso = 0
-            precios_actualizados = []
+            # Todo o nada: o se recibe la compra completa o no se toca nada
+            with transaction.atomic():
+                es_completa = True
+                total_egreso = 0
+                precios_actualizados = []
 
-            for d in detalles:
-                cantidad_recibida = int(float(request.POST.get(f"recibido_{d.id}")))
+                for d in detalles:
+                    cantidad_recibida = int(float(request.POST.get(f"recibido_{d.id}")))
 
-                d.cantidad_recibida = cantidad_recibida
-                d.save()
+                    d.cantidad_recibida = cantidad_recibida
+                    d.save()
 
-                if cantidad_recibida < d.cantidad:
-                    es_completa = False
+                    if cantidad_recibida < d.cantidad:
+                        es_completa = False
 
-                producto = d.producto
+                    producto = d.producto
 
-                # El que recibe la compra puede actualizar el precio de venta del producto
-                nuevo_precio = float(request.POST.get(f"nuevo_precio_{d.id}"))
-                if nuevo_precio != float(producto.precio):
-                    producto.precio = nuevo_precio
-                    precios_actualizados.append(producto.nombre)
+                    # El que recibe la compra puede actualizar el precio de venta del producto
+                    nuevo_precio = float(request.POST.get(f"nuevo_precio_{d.id}"))
+                    if nuevo_precio != float(producto.precio):
+                        producto.precio = nuevo_precio
+                        precios_actualizados.append(producto.nombre)
 
-                if cantidad_recibida > 0:
-                    producto.stock += cantidad_recibida
+                    if cantidad_recibida > 0:
+                        producto.stock += cantidad_recibida
 
-                producto.save()
+                    producto.save()
 
-                if cantidad_recibida > 0:
-                    MovimientoInventario.objects.create(
-                        producto=producto,
-                        cantidad=cantidad_recibida,
-                        tipo="Entrada",
-                        descripcion=f"Compra #{compra.id} - recibido {cantidad_recibida}/{d.cantidad}"
+                    if cantidad_recibida > 0:
+                        MovimientoInventario.objects.create(
+                            producto=producto,
+                            cantidad=cantidad_recibida,
+                            tipo="Entrada",
+                            descripcion=f"Compra #{compra.id} - recibido {cantidad_recibida}/{d.cantidad}"
+                        )
+
+                        total_egreso += cantidad_recibida * d.precio_unitario
+
+                compra.estado = "Recibida" if es_completa else "Recibida parcialmente"
+                compra.save()
+
+                # Registrar egreso contable
+                if total_egreso > 0:
+                    MovimientoContable.objects.create(
+                        tipo="Egreso",
+                        valor=total_egreso,
+                        descripcion=f"Compra #{compra.id} a {compra.proveedor.nombre} - {compra.estado}",
+                        compra=compra
                     )
 
-                    total_egreso += cantidad_recibida * d.precio_unitario
+                messages.success(request, f"Compra recibida: {compra.estado}")
 
-            compra.estado = "Recibida" if es_completa else "Recibida parcialmente"
-            compra.save()
-
-            # Registrar egreso contable
-            if total_egreso > 0:
-                MovimientoContable.objects.create(
-                    tipo="Egreso",
-                    valor=total_egreso,
-                    descripcion=f"Compra #{compra.id} a {compra.proveedor.nombre} - {compra.estado}",
-                    compra=compra
-                )
-
-            messages.success(request, f"Compra recibida: {compra.estado}")
-
-            if precios_actualizados:
-                messages.info(request, f"Se actualizó el precio de: {', '.join(precios_actualizados)}")
+                if precios_actualizados:
+                    messages.info(request, f"Se actualizó el precio de: {', '.join(precios_actualizados)}")
 
         except Exception as e:
             messages.error(request, f"Error: {e}")
@@ -1764,13 +1848,14 @@ def actualizar_vineta(request, id):
         return redirect("inventario:configuracion")
 
     else:
-        q = Vineta.objects.get(pk=id)
+        q = get_object_or_404(Vineta, pk=id)
         contexto = {
             "datos": q
         }
         return render(request, "Configuracion/formulario_vineta.html", contexto)
 
 @autorizacion(["Administrador"])
+@require_POST
 def eliminar_vineta(request, id):
     try:
         q = Vineta.objects.get(pk=id)
@@ -1859,13 +1944,14 @@ def actualizar_caracteristica(request, id):
         return redirect("inventario:configuracion")
 
     else:
-        q = Caracteristica.objects.get(pk=id)
+        q = get_object_or_404(Caracteristica, pk=id)
         contexto = {
             "datos": q
         }
         return render(request, "Configuracion/formulario_caracteristica.html", contexto)
 
 @autorizacion(["Administrador"])
+@require_POST
 def eliminar_caracteristica(request, id):
     try:
         q = Caracteristica.objects.get(pk=id)
@@ -1952,13 +2038,14 @@ def actualizar_beneficio(request, id):
         return redirect("inventario:configuracion")
 
     else:
-        q = Beneficio.objects.get(pk=id)
+        q = get_object_or_404(Beneficio, pk=id)
         contexto = {
             "datos": q
         }
         return render(request, "Configuracion/formulario_beneficio.html", contexto)
 
 @autorizacion(["Administrador"])
+@require_POST
 def eliminar_beneficio(request, id):
     try:
         q = Beneficio.objects.get(pk=id)
@@ -2150,6 +2237,7 @@ from rest_framework.permissions import IsAuthenticated
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(request=None, responses={200: None}, summary="Cerrar sesión de la API (destruye el token)")
     def post(self, request):
         # Elimina el token asociado al usuario de la petición
         request.user.auth_token.delete()

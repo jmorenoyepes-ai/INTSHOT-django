@@ -1,0 +1,9 @@
+{% extends 'base_publico.html' %}
+
+{% block cuerpo %}
+<div class="container-lg text-center py-5">
+    <h1 class="display-4 fw-bold">Algo salió mal</h1>
+    <p class="lead">Ocurrió un error inesperado. Ya quedó registrado, intenta de nuevo en unos minutos.</p>
+    <a class="btn btn-primary mt-3" href="{% url 'inventario:landing' %}">Volver al inicio</a>
+</div>
+{% endblock %}

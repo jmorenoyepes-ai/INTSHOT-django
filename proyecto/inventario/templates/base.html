@@ -69,7 +69,10 @@
                     <p>Modal body text goes here.</p>
                 </div>
                 <div class="modal-footer">
-                    <button id="modal_aceptar" type="button" class="btn btn-primary">Aceptar</button>
+                    <form id="modal_form_eliminar" method="post" action="">
+                        {% csrf_token %}
+                        <button id="modal_aceptar" type="submit" class="btn btn-primary">Aceptar</button>
+                    </form>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 </div>
             </div>

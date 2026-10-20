@@ -13,23 +13,70 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+# Variables de entorno
+# Se leen del archivo .env (ignorado por git) o del entorno del sistema.
+# Ver .env.example para la lista completa.
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l9v^x9t0jv598v%werhl%=0w##&f*0d0%huusyngqm5pb4eg3s'
+def _cargar_env():
+    archivo = BASE_DIR / ".env"
+    if archivo.exists():
+        for linea in archivo.read_text(encoding="utf-8").splitlines():
+            linea = linea.strip()
+            if not linea or linea.startswith("#") or "=" not in linea:
+                continue
+            clave, valor = linea.split("=", 1)
+            os.environ.setdefault(clave.strip(), valor.strip().strip('"').strip("'"))
+
+
+_cargar_env()
+
+
+def _env_bool(nombre, por_defecto):
+    valor = os.environ.get(nombre)
+    if valor is None:
+        return por_defecto
+    return valor.strip().lower() in ("1", "true", "si", "sí", "yes", "on")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # En PythonAnywhere existe la variable PYTHONANYWHERE_SITE, asi que alla queda
-# en False automaticamente. En local (runserver) queda en True, que es lo que
-# hace que Django sirva los archivos de static/ sin necesitar un servidor web.
-DEBUG = "PYTHONANYWHERE_SITE" not in os.environ
+# en False automaticamente. En local (runserver) queda en True. Se puede forzar
+# con DEBUG=True/False en el .env.
+DEBUG = _env_bool("DEBUG", "PYTHONANYWHERE_SITE" not in os.environ)
 
-ALLOWED_HOSTS = ['*']
+# SECURITY WARNING: keep the secret key used in production secret!
+# La clave real va en el .env (SECRET_KEY=...). En desarrollo, si no existe,
+# se usa una clave fija solo para poder trabajar en local.
+SECRET_KEY = os.environ.get("SECRET_KEY", "")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "django-insecure-solo-para-desarrollo-local-no-usar-en-produccion"
+    else:
+        raise ImproperlyConfigured(
+            "Falta SECRET_KEY. Agrega SECRET_KEY=... al archivo .env del servidor "
+            "(genera una con: python -c \"from django.core.management.utils import "
+            "get_random_secret_key; print(get_random_secret_key())\")."
+        )
+
+# Dominios desde los que se puede abrir el sitio, separados por coma.
+# Ejemplo: ALLOWED_HOSTS=intshot.pythonanywhere.com,www.intshot.com
+ALLOWED_HOSTS = [
+    h.strip() for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h.strip()
+]
+if not ALLOWED_HOSTS:
+    ALLOWED_HOSTS = ["*"] if DEBUG else [".pythonanywhere.com"]
+
+# Para que el navegador acepte los formularios desde el dominio del servidor
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{h.lstrip('.')}" if not h.startswith(".") else f"https://*{h}"
+    for h in ALLOWED_HOSTS if h != "*"
+]
 
 
 # Application definition
@@ -162,22 +209,8 @@ SPECTACULAR_SETTINGS = {
 
 
 # Correo electrónico
-# Las credenciales se leen del archivo .env (ignorado por git) o del
-# entorno del sistema. En desarrollo, si no se configura nada, los correos
-# se imprimen en la terminal en lugar de enviarse.
-
-def _cargar_env():
-    archivo = Path(__file__).resolve().parent.parent / ".env"
-    if archivo.exists():
-        for linea in archivo.read_text(encoding="utf-8").splitlines():
-            linea = linea.strip()
-            if not linea or linea.startswith("#") or "=" not in linea:
-                continue
-            clave, valor = linea.split("=", 1)
-            os.environ.setdefault(clave.strip(), valor.strip().strip('"').strip("'"))
-
-
-_cargar_env()
+# En desarrollo, si no se configura nada en el .env, los correos se
+# imprimen en la terminal en lugar de enviarse.
 
 EMAIL_BACKEND = os.environ.get(
     "EMAIL_BACKEND",
@@ -193,3 +226,49 @@ DEFAULT_FROM_EMAIL = os.environ.get(
     EMAIL_HOST_USER or "no-reply@intshot.com",
 )
 
+
+# Seguridad en producción (HTTPS)
+# PythonAnywhere entrega el sitio por HTTPS y avisa con la cabecera
+# X-Forwarded-Proto. Se puede apagar con SEGURIDAD_HTTPS=False en el .env
+# si el servidor no tiene certificado.
+SEGURIDAD_HTTPS = _env_bool("SEGURIDAD_HTTPS", not DEBUG)
+
+if SEGURIDAD_HTTPS:
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+X_FRAME_OPTIONS = "DENY"
+
+# La sesión web se cierra sola después de este tiempo sin usar el sistema
+SESSION_COOKIE_AGE = 60 * 60 * 8  # 8 horas
+
+
+# Tokens de la API (para apps externas como Flutter)
+# Un token dura esta cantidad de días desde que se creó. Al vencerse, la app
+# debe volver a pedir uno en /api/api-token-auth/
+API_TOKEN_DIAS = int(os.environ.get("API_TOKEN_DIAS", "30"))
+
+
+# Intentos de inicio de sesión
+# Después de LOGIN_MAX_INTENTOS fallidos seguidos, se bloquea ese correo
+# durante LOGIN_BLOQUEO_MINUTOS.
+LOGIN_MAX_INTENTOS = 5
+LOGIN_BLOQUEO_MINUTOS = 10
+
+
+# Registro de errores: en producción quedan en el log de errores del servidor
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {
+        "inventario": {"handlers": ["console"], "level": "INFO", "propagate": False},
+    },
+}
