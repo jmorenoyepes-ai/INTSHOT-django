@@ -2,13 +2,14 @@ function modal_eliminar(tabla, mensaje, url){
     // modificar modal de bootsrapt segun tabla en cuestión.
     let titulo = document.getElementById("modal_title");
     let body = document.getElementById("modal_body");
-    let boton_aceptar = document.getElementById("modal_aceptar");
-    
+    let form = document.getElementById("modal_form_eliminar");
+
     titulo.innerHTML = `Eliminar ${tabla}`;
     body.innerHTML = mensaje;
 
-    console.log(url);
-    boton_aceptar.setAttribute("onclick",`location.href='${url}'`);
+    // La eliminación se envía por POST (con token CSRF) y no por un simple
+    // enlace, para que un link externo no pueda borrar registros.
+    form.setAttribute("action", url);
 }
 
 // Switch de modo oscuro/claro
