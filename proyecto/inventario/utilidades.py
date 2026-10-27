@@ -123,6 +123,45 @@ def correo_valido(valor):
     return True
 
 
+# Formatos de imagen permitidos en los formularios (no se permite SVG porque
+# puede llevar código JavaScript por dentro)
+EXTENSIONES_IMAGEN = ["jpg", "jpeg", "png", "gif", "webp", "avif"]
+FORMATOS_IMAGEN = ["JPEG", "PNG", "GIF", "WEBP", "AVIF"]
+IMAGEN_MAX_MB = 5
+
+
+def validar_imagen(archivo, nombre_campo="La imagen"):
+    # Devuelve un mensaje de error si el archivo no es una imagen válida,
+    # o None si está bien. Si no se subió ningún archivo no hay error.
+    if not archivo:
+        return None
+
+    extension = archivo.name.rsplit(".", 1)[-1].lower() if "." in archivo.name else ""
+    if extension not in EXTENSIONES_IMAGEN:
+        permitidos = ", ".join(EXTENSIONES_IMAGEN)
+        return f"{nombre_campo} debe ser una imagen ({permitidos})"
+
+    if archivo.size > IMAGEN_MAX_MB * 1024 * 1024:
+        return f"{nombre_campo} no puede pesar más de {IMAGEN_MAX_MB} MB"
+
+    # No basta con la extensión: se abre el archivo con Pillow para comprobar
+    # que por dentro de verdad sea una imagen (un .txt renombrado a .jpg falla aquí)
+    try:
+        from PIL import Image
+        imagen = Image.open(archivo)
+        formato = imagen.format
+        imagen.verify()
+    except Exception:
+        return f"{nombre_campo} no es una imagen válida o está dañada"
+    finally:
+        archivo.seek(0)
+
+    if formato not in FORMATOS_IMAGEN:
+        return f"{nombre_campo} tiene un formato de imagen no permitido"
+
+    return None
+
+
 def mostrar_errores(request, errores):
     # Muestra en pantalla todos los errores encontrados en un formulario
     for error in errores:

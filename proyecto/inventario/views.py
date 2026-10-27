@@ -484,7 +484,10 @@ def eliminar_usuario(request, id):
     try:
         q = Usuario.objects.get(pk=id)
 
-        if q.id == request.session["logueado"]["id"]:
+        if q.es_super_admin:
+            messages.error(request, "La cuenta principal de INTSHOT no se puede eliminar")
+            return redirect("inventario:usuarios")
+        elif q.id == request.session["logueado"]["id"]:
             messages.error(request, "No puedes eliminar tu propia cuenta")
             return redirect("inventario:usuarios")
         elif q.rol == "Administrador":
@@ -560,6 +563,11 @@ def crear_usuario(request):
 
 @autorizacion(["Administrador"])
 def actualizar_usuario(request, id):
+    q = get_object_or_404(Usuario, pk=id)
+    if q.es_super_admin:
+        messages.error(request, "La cuenta principal de INTSHOT no se puede editar")
+        return redirect("inventario:usuarios")
+
     if request.method == "POST":
         nombre = request.POST.get('nombre')
         apellido = request.POST.get('apellido')
@@ -586,11 +594,10 @@ def actualizar_usuario(request, id):
 
         if errores:
             mostrar_errores(request, errores)
-            contexto = {"datos": request.POST}
+            contexto = {"datos": request.POST, "editando": True}
             return render(request, "Usuario/formulario_usuario.html", contexto)
 
         try:
-            q = Usuario.objects.get(pk = id)
             q.nombre = nombre
             q.apellido = apellido
             q.correo = correo
@@ -615,9 +622,9 @@ def actualizar_usuario(request, id):
         return redirect ('inventario:usuarios')
 
     else:
-        q = get_object_or_404(Usuario, pk=id)
         contexto = {
-            "datos" : q
+            "datos" : q,
+            "editando": True,
         }
         return render(request, "Usuario/formulario_usuario.html", contexto)
 
@@ -680,6 +687,9 @@ def crear_producto(request):
 
         # Validaciones del formulario
         errores = validar_producto(nombre, color, descripcion, categoria, talla, stock, precio)
+        error_imagen = validar_imagen(request.FILES.get('imagen'))
+        if error_imagen:
+            errores.append(error_imagen)
 
         if errores:
             mostrar_errores(request, errores)
@@ -721,6 +731,9 @@ def actualizar_producto(request, id):
 
         # Validaciones del formulario
         errores = validar_producto(nombre, color, descripcion, categoria, talla, stock, precio)
+        error_imagen = validar_imagen(request.FILES.get('imagen'))
+        if error_imagen:
+            errores.append(error_imagen)
 
         if errores:
             mostrar_errores(request, errores)
@@ -1753,6 +1766,10 @@ def actualizar_configuracion(request):
             errores.append("La alerta de stock bajo debe ser un número")
         elif int(float(limite_stock_bajo)) < 0:
             errores.append("La alerta de stock bajo no puede ser negativa")
+        for campo, etiqueta in [("logo", "El logo"), ("hero_imagen", "La imagen principal")]:
+            error_imagen = validar_imagen(request.FILES.get(campo), etiqueta)
+            if error_imagen:
+                errores.append(error_imagen)
 
         if errores:
             mostrar_errores(request, errores)
@@ -1886,6 +1903,9 @@ def crear_caracteristica(request):
             errores.append("El texto de la característica es obligatorio")
         if not es_numero(orden):
             errores.append("El orden debe ser un número")
+        error_imagen = validar_imagen(request.FILES.get("imagen"))
+        if error_imagen:
+            errores.append(error_imagen)
 
         if errores:
             mostrar_errores(request, errores)
@@ -1921,6 +1941,9 @@ def actualizar_caracteristica(request, id):
             errores.append("El texto de la característica es obligatorio")
         if not es_numero(orden):
             errores.append("El orden debe ser un número")
+        error_imagen = validar_imagen(request.FILES.get("imagen"))
+        if error_imagen:
+            errores.append(error_imagen)
 
         if errores:
             mostrar_errores(request, errores)
@@ -2074,6 +2097,7 @@ from drf_spectacular.utils import extend_schema
 
 from inventario.authentication import ExpiringTokenAuthentication
 from .permissions import IsStaffOrReadOnly 
+from rest_framework.exceptions import PermissionDenied
 
 
 # Vistas para las APIs
@@ -2083,6 +2107,18 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
+
+    def _proteger_super_admin(self):
+        if self.get_object().es_super_admin:
+            raise PermissionDenied("La cuenta principal de INTSHOT no se puede modificar ni eliminar")
+
+    def update(self, request, *args, **kwargs):
+        self._proteger_super_admin()
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        self._proteger_super_admin()
+        return super().destroy(request, *args, **kwargs)
 
     @extend_schema(
         summary="Lista de usuarios",

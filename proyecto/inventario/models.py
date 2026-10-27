@@ -17,6 +17,10 @@ class Usuario(models.Model):
     )
 
     rol = models.CharField(max_length=15, choices=ROLES, default = "Cliente")
+
+    # La cuenta principal de INTSHOT: no se puede eliminar ni editar
+    es_super_admin = models.BooleanField(default=False)
+
     def __str__(self):
         return f"{self.id} - {self.nombre} {self.apellido}"
 

@@ -56,12 +56,16 @@
                 <td>{{ i.rol }}</td>
                 <td>{{ i.correo }}</td>
                 <td>
+                    {% if i.es_super_admin %}
+                    <span class="badge text-bg-secondary">Cuenta principal</span>
+                    {% else %}
                     <button
                         onclick="modal_eliminar('Usuario', 'Está seguro de eliminar el usuario <strong>{{ i.nombre }}</strong>?', `{% url 'inventario:eliminar_usuario' i.id %}`);"
                         type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal"
                         data-bs-target="#confirmacion">Eliminar</button>
 
                     <a href="{% url 'inventario:actualizar_usuario' i.id %}" class="btn btn-info btn-sm" type="button">Editar</a>
+                    {% endif %}
 
                 </td>
             </tr>

@@ -40,7 +40,7 @@
                             {% if datos.imagen %}
                             <img src="{{ datos.imagen.url }}" alt="{{ datos.titulo }}" class="img-thumbnail d-block mb-2" style="max-height: 150px;">
                             {% endif %}
-                            <input type="file" name="imagen" accept="image/*" class="form-control">
+                            <input type="file" name="imagen" accept=".jpg,.jpeg,.png,.gif,.webp,.avif" class="form-control">
                             <small class="text-muted d-block mt-1">Si no sube imagen, la tarjeta se muestra solo con el texto.</small>
                         </div>
                     </div>

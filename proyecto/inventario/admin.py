@@ -9,7 +9,22 @@ class UsuarioAdmin(admin.ModelAdmin):
     exclude = ["password"]
     list_filter = ["rol"]
     search_fields = ["nombre", "apellido", "correo"]
+    readonly_fields = ["es_super_admin"]
     # list_editable = ["rol"]
+
+    # La cuenta principal de INTSHOT tampoco se edita ni elimina desde aquí
+    def has_change_permission(self, request, obj=None):
+        if obj and obj.es_super_admin:
+            return False
+        return super().has_change_permission(request, obj)
+
+    def has_delete_permission(self, request, obj=None):
+        if obj and obj.es_super_admin:
+            return False
+        return super().has_delete_permission(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        super().delete_queryset(request, queryset.exclude(es_super_admin=True))
 
 @admin.register(Producto)
 class ProductoAdmin(admin.ModelAdmin):

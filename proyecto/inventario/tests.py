@@ -6,10 +6,16 @@
 # verifican reglas de seguridad: que un cliente no pueda ver ni pagar
 # pedidos de otro cliente, ni tocar el carrito de otro, etc.
 
+import shutil
+import tempfile
 from datetime import timedelta
 from decimal import Decimal
+from io import BytesIO
+
+from PIL import Image
 
 from django.core import mail
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
@@ -30,6 +36,12 @@ def crear_usuario(correo, rol="Cliente", clave="clave12345", nombre="Ana", apell
     guardar_password(u, clave)
     u.save()
     return u
+
+
+def imagen_png(nombre="foto.png"):
+    contenido = BytesIO()
+    Image.new("RGB", (10, 10), "red").save(contenido, "PNG")
+    return SimpleUploadedFile(nombre, contenido.getvalue(), content_type="image/png")
 
 
 def crear_producto(nombre="Camiseta", stock=10, precio="25000.00", categoria="Camisetas"):
@@ -274,6 +286,47 @@ class UsuariosAdminTests(BaseIntshot):
         self.client.post(reverse("inventario:eliminar_usuario", args=[self.otro_cliente.id]))
         self.assertFalse(Usuario.objects.filter(pk=self.otro_cliente.pk).exists())
 
+    def test_super_admin_no_se_puede_eliminar(self):
+        super_admin = crear_usuario("intshot1@gmail.com", "Administrador")
+        Usuario.objects.filter(pk=super_admin.pk).update(es_super_admin=True)
+        otro_admin = crear_usuario("admin2@test.com", "Administrador")
+        self.login(otro_admin)
+        self.client.post(reverse("inventario:eliminar_usuario", args=[super_admin.id]))
+        self.assertTrue(Usuario.objects.filter(pk=super_admin.pk).exists())
+
+    def test_super_admin_no_se_puede_editar(self):
+        super_admin = crear_usuario("intshot1@gmail.com", "Administrador", nombre="Intshot")
+        Usuario.objects.filter(pk=super_admin.pk).update(es_super_admin=True)
+        self.login(self.admin)
+        url = reverse("inventario:actualizar_usuario", args=[super_admin.id])
+        self.assertRedirects(self.client.get(url), reverse("inventario:usuarios"))
+        datos = {
+            "nombre": "Cambiado", "apellido": "Prueba", "correo": "otro@correo.com",
+            "telefono": "3001234567", "rol": "Cliente",
+        }
+        self.client.post(url, datos)
+        super_admin.refresh_from_db()
+        self.assertEqual(super_admin.nombre, "Intshot")
+        self.assertEqual(super_admin.rol, "Administrador")
+
+    def test_editar_usuario_no_muestra_campos_de_contrasena(self):
+        self.login(self.admin)
+        r = self.client.get(reverse("inventario:actualizar_usuario", args=[self.cliente.id]))
+        self.assertNotContains(r, 'name="password"')
+        r = self.client.get(reverse("inventario:crear_usuario"))
+        self.assertContains(r, 'name="password"')
+
+    def test_editar_usuario_no_cambia_la_contrasena(self):
+        self.login(self.admin)
+        datos = {
+            "nombre": "Ana", "apellido": "Prueba", "correo": self.cliente.correo,
+            "telefono": "3001234567", "rol": "Cliente",
+            "password": "nuevaclave1", "veri_password": "nuevaclave1",
+        }
+        self.client.post(reverse("inventario:actualizar_usuario", args=[self.cliente.id]), datos)
+        self.client.logout()
+        self.login(self.cliente)
+
     def test_no_eliminar_cliente_con_pedidos(self):
         self.login(self.admin)
         Pedido.objects.create(usuario=self.otro_cliente)
@@ -286,6 +339,51 @@ class UsuariosAdminTests(BaseIntshot):
 # ---------------------------------------------------------------------------
 
 class ProductosTests(BaseIntshot):
+    def setUp(self):
+        super().setUp()
+        self.media = tempfile.mkdtemp()
+        self.ajustes_media = override_settings(MEDIA_ROOT=self.media)
+        self.ajustes_media.enable()
+
+    def tearDown(self):
+        self.ajustes_media.disable()
+        shutil.rmtree(self.media, ignore_errors=True)
+        super().tearDown()
+
+    def datos_producto(self, **extra):
+        datos = {
+            "nombre": "Gorra", "color": "Rojo", "descripcion": "Gorra",
+            "categoria": "Accesorios", "talla": "U", "stock": "5", "precio": "30000",
+        }
+        datos.update(extra)
+        return datos
+
+    def test_crear_producto_con_imagen_valida(self):
+        self.login(self.empleado)
+        self.client.post(reverse("inventario:crear_producto"), self.datos_producto(imagen=imagen_png()))
+        self.assertTrue(Producto.objects.get(nombre="Gorra").imagen)
+
+    def test_rechaza_archivo_que_no_es_imagen(self):
+        self.login(self.empleado)
+        txt = SimpleUploadedFile("virus.txt", b"hola", content_type="text/plain")
+        self.client.post(reverse("inventario:crear_producto"), self.datos_producto(imagen=txt))
+        self.assertFalse(Producto.objects.filter(nombre="Gorra").exists())
+
+    def test_rechaza_texto_renombrado_como_imagen(self):
+        self.login(self.empleado)
+        falso = SimpleUploadedFile("foto.jpg", b"esto no es una imagen", content_type="image/jpeg")
+        self.client.post(reverse("inventario:crear_producto"), self.datos_producto(imagen=falso))
+        self.assertFalse(Producto.objects.filter(nombre="Gorra").exists())
+
+    def test_actualizar_producto_rechaza_archivo_que_no_es_imagen(self):
+        self.login(self.empleado)
+        txt = SimpleUploadedFile("virus.txt", b"hola", content_type="text/plain")
+        url = reverse("inventario:actualizar_producto", args=[self.producto.id])
+        self.client.post(url, self.datos_producto(imagen=txt))
+        self.producto.refresh_from_db()
+        self.assertEqual(self.producto.nombre, "Camiseta")
+        self.assertFalse(self.producto.imagen)
+
     def test_crear_producto(self):
         self.login(self.empleado)
         datos = {

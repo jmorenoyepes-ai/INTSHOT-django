@@ -27,7 +27,7 @@
                             {% if datos.logo %}
                             <img src="{{ datos.logo.url }}" alt="Logo" class="img-thumbnail d-block mb-2" style="max-height: 100px;">
                             {% endif %}
-                            <input type="file" name="logo" accept="image/*" class="form-control">
+                            <input type="file" name="logo" accept=".jpg,.jpeg,.png,.gif,.webp,.avif" class="form-control">
                         </div>
 
                         <div class="mb-3">
@@ -82,7 +82,7 @@
                             {% if datos.hero_imagen %}
                             <img src="{{ datos.hero_imagen.url }}" alt="Imagen principal" class="img-thumbnail d-block mb-2" style="max-height: 120px;">
                             {% endif %}
-                            <input type="file" name="hero_imagen" accept="image/*" class="form-control">
+                            <input type="file" name="hero_imagen" accept=".jpg,.jpeg,.png,.gif,.webp,.avif" class="form-control">
                         </div>
 
                         <div class="mb-3">

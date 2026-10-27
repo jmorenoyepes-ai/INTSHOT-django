@@ -6,7 +6,7 @@
     <div class="card shadow-sm">
         <div class="card-body p-4">
             
-            {% if datos %}
+            {% if editando %}
                 <h1 class="display-4">Actualizar Usuario: {{ datos.nombre }} {{ datos.apellido }}</h1>
             {% else %}
                 <h1 class="display-4">Crear Usuario</h1>
@@ -34,6 +34,7 @@
                             <input value="{{ datos.correo }}" type="email" name="correo" placeholder="Correo del Usuario" class="form-control" required>
                         </div>
                         
+                        {% if not editando %}
                         <div class="mb-3">
                             <label class="form-label">Contraseña</label>
                             <input type="password" name="password" placeholder="Digite la contraseña" class="form-control">
@@ -43,6 +44,7 @@
                             <label class="form-label">Confirmar Contraseña</label>
                             <input type="password" name="veri_password" placeholder="Repita la contraseña" class="form-control">
                         </div>
+                        {% endif %}
                     </div>
 
                     <!-- Columna Derecha -->
