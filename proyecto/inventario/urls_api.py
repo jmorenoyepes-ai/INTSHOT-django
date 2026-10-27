@@ -18,6 +18,8 @@ router.register("movimientosContable", views.MovimientoContableViewSet)
 
 
 urlpatterns = [
+    path('v1/auth/login/', views.api_login, name='api_login_flutter'),
+    path('v1/auth/registro/', views.api_registro, name='api_registro_flutter'),
     path('v1/', include(router.urls)),
 ]
 

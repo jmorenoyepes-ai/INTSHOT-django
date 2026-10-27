@@ -2098,6 +2098,8 @@ from drf_spectacular.utils import extend_schema
 from inventario.authentication import ExpiringTokenAuthentication
 from .permissions import IsStaffOrReadOnly 
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.decorators import action
+
 
 
 # Vistas para las APIs
@@ -2179,6 +2181,92 @@ class PedidoViewSet(viewsets.ModelViewSet):
         )
     def list(self, request, *args, **kwargs):
             return super().list(request, *args, **kwargs)
+
+    @action(detail=False, methods=['post'], url_path='crear-desde-carrito')
+    def crear_desde_carrito(self, request):
+        try:
+            # Obtenemos el usuario de tu tabla custom usando el correo del Token
+            usuario = Usuario.objects.get(correo=request.user.email)
+        except Usuario.DoesNotExist:
+            return Response({'detail': 'Usuario no encontrado.'}, status=404)
+
+        carrito = Carrito.objects.filter(usuario=usuario)
+        if not carrito.exists():
+            return Response({'detail': 'El carrito está vacío.'}, status=400)
+
+        # Verificar stock antes de crear
+        for item in carrito:
+            if item.cantidad > item.producto.stock:
+                return Response({'detail': f'No hay stock suficiente de {item.producto.nombre}'}, status=400)
+
+        try:
+            with transaction.atomic():
+                pedido = Pedido(usuario=usuario)
+                pedido.save()
+
+                for item in carrito:
+                    DetallePedido.objects.create(
+                        pedido=pedido,
+                        producto=item.producto,
+                        cantidad=item.cantidad,
+                        precio_unitario=item.producto.precio
+                    )
+                carrito.delete()
+
+            # Responder con el formato exacto que espera Flutter
+            return Response({
+                'mensaje': 'Pedido generado correctamente.',
+                'pedido': {
+                    'id': pedido.id,
+                    'total': float(pedido.total())
+                }
+            })
+        except Exception as e:
+            return Response({'detail': str(e)}, status=500)
+
+    @action(detail=True, methods=['post'], url_path='registrar-pago')
+    def registrar_pago_api(self, request, pk=None):
+        metodo = request.data.get('metodo')
+        try:
+            usuario = Usuario.objects.get(correo=request.user.email)
+            pedido = Pedido.objects.get(pk=pk, usuario=usuario)
+        except (Usuario.DoesNotExist, Pedido.DoesNotExist):
+            return Response({'detail': 'El pedido no existe o no te pertenece.'}, status=404)
+
+        if pedido.pagado() or pedido.estado == "Cancelado":
+            return Response({'detail': 'Este pedido ya fue pagado o está cancelado.'}, status=400)
+
+        try:
+            with transaction.atomic():
+                detalles = list(DetallePedido.objects.filter(pedido=pedido).select_related("producto"))
+                
+                # Validar stock final antes de pagar
+                for d in detalles:
+                    if d.cantidad > d.producto.stock:
+                        return Response({'detail': f'No hay stock suficiente de {d.producto.nombre}'}, status=400)
+
+                Pago.objects.create(pedido=pedido, valor=pedido.total(), metodo=metodo)
+
+                # Descontar inventario e historial
+                for d in detalles:
+                    Producto.objects.filter(pk=d.producto_id).update(stock=F("stock") - d.cantidad)
+                    MovimientoInventario.objects.create(
+                        producto=d.producto,
+                        cantidad=d.cantidad,
+                        tipo="Salida",
+                        descripcion=f"Pago App Pedido #{pedido.id}"
+                    )
+
+                MovimientoContable.objects.create(
+                    tipo="Ingreso",
+                    valor=pedido.total(),
+                    descripcion=f"Pago App Pedido #{pedido.id} - {metodo}",
+                    pedido=pedido
+                )
+
+            return Response({'mensaje': 'Pago registrado correctamente'})
+        except Exception as e:
+            return Response({'detail': str(e)}, status=500)
 
 class DetallePedidoViewSet(viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
@@ -2281,3 +2369,104 @@ class LogoutView(APIView):
             {"message": "Sesión cerrada correctamente. Token destruido."}, 
             status=status.HTTP_200_OK
         )
+
+# ==========================================
+# NUEVO ENDPOINT DE LOGIN PARA FLUTTER
+# ==========================================
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
+
+@api_view(['POST'])
+@permission_classes([AllowAny]) # Permite entrar sin token para poder iniciar sesión
+def api_login(request):
+    correo = request.data.get('correo')
+    clave = request.data.get('password')
+
+    if not correo or not clave:
+        return Response({'detail': 'Faltan credenciales.'}, status=400)
+
+    try:
+        # 1. Buscamos el usuario con tu modelo custom
+        q = Usuario.objects.get(correo=correo)
+        
+        # 2. Validamos la contraseña usando TU función de utilidades
+        if not verificar_password(q, clave):
+            return Response({'detail': 'Las credenciales no son válidas.'}, status=401)
+            
+        # 3. Sincronizamos con el User nativo de Django para el sistema de Tokens
+        user_django, created = User.objects.get_or_create(username=correo, email=correo)
+        if created:
+            user_django.set_password(clave)
+            user_django.save()
+
+        # 4. Generamos o recuperamos el Token
+        token, _ = Token.objects.get_or_create(user=user_django)
+
+        # 5. Respondemos con el JSON exacto que espera Flutter
+        serializer = UsuarioSerializer(q)
+        return Response({
+            'token': token.key,
+            'usuario': serializer.data
+        })
+
+    except Usuario.DoesNotExist:
+        return Response({'detail': 'El usuario no existe.'}, status=401)
+
+# ==========================================
+# ENDPOINT DE REGISTRO PARA FLUTTER
+# ==========================================
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def api_registro(request):
+    nombre = request.data.get('nombre')
+    apellido = request.data.get('apellido')
+    correo = request.data.get('correo')
+    telefono = request.data.get('telefono')
+    password = request.data.get('password')
+    veri_password = request.data.get('veriPassword') # Flutter lo manda como veriPassword
+
+    # Validaciones básicas
+    if not correo or not password:
+        return Response({'detail': 'Faltan datos obligatorios.'}, status=400)
+    
+    if Usuario.objects.filter(correo=correo).exists():
+        return Response({'detail': 'Ya existe un usuario con este correo.'}, status=400)
+        
+    if password != veri_password:
+        return Response({'detail': 'Las contraseñas no coinciden.'}, status=400)
+
+    try:
+        # 1. Crear el usuario custom en tu tabla Usuario
+        nuevo_usuario = Usuario(
+            nombre=nombre,
+            apellido=apellido,
+            correo=correo,
+            telefono=telefono,
+            rol="Cliente" # Por defecto los registrados en la app son clientes
+        )
+        guardar_password(nuevo_usuario, password)
+        nuevo_usuario.save()
+
+        # 2. Sincronizar con el User nativo de Django para generar el Token
+        user_django, created = User.objects.get_or_create(username=correo, email=correo)
+        if created:
+            user_django.set_password(password)
+            user_django.save()
+
+        # 3. Generar Token y responder
+        token, _ = Token.objects.get_or_create(user=user_django)
+        serializer = UsuarioSerializer(nuevo_usuario)
+        
+        # Opcional: Si quieres que envíe el correo de bienvenida, descomenta la siguiente línea
+        # enviar_bienvenida(nuevo_usuario, request)
+
+        return Response({
+            'token': token.key,
+            'usuario': serializer.data
+        }, status=201)
+
+    except Exception as e:
+        return Response({'detail': str(e)}, status=500)
