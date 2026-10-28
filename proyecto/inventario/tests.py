@@ -774,3 +774,63 @@ class ApiTests(BaseIntshot):
         r = self.client.post("/api/api-token-auth/", {"username": "api", "password": "clave12345"})
         self.assertEqual(r.status_code, 200)
         self.assertNotEqual(r.json()["token"], token)
+
+
+# ---------------------------------------------------------------------------
+# API de la app móvil (Flutter)
+# ---------------------------------------------------------------------------
+
+class ApiAppMovilTests(BaseIntshot):
+    def token_de(self, usuario, clave="clave12345"):
+        r = self.client.post("/api/v1/auth/login/", {"correo": usuario.correo, "password": clave})
+        self.assertEqual(r.status_code, 200)
+        return {"HTTP_AUTHORIZATION": f"Token {r.json()['token']}"}
+
+    def test_login_app_solo_para_clientes(self):
+        r = self.client.post("/api/v1/auth/login/", {"correo": self.admin.correo, "password": "clave12345"})
+        self.assertEqual(r.status_code, 403)
+
+    def test_cliente_solo_ve_sus_pedidos_detalles_y_pagos(self):
+        propio = Pedido.objects.create(usuario=self.cliente)
+        ajeno = Pedido.objects.create(usuario=self.otro_cliente)
+        for pedido in (propio, ajeno):
+            DetallePedido.objects.create(pedido=pedido, producto=self.producto, cantidad=1,
+                                         precio_unitario=self.producto.precio)
+            Pago.objects.create(pedido=pedido, valor=self.producto.precio, metodo="Efectivo")
+        auth = self.token_de(self.cliente)
+
+        pedidos = self.client.get("/api/v1/pedidos/", **auth).json()
+        self.assertEqual([p["id"] for p in pedidos], [propio.id])
+
+        detalles = self.client.get("/api/v1/detallePedidos/", **auth).json()
+        self.assertEqual({d["pedido"] for d in detalles}, {propio.id})
+
+        pagos = self.client.get("/api/v1/pagos/", **auth).json()
+        self.assertEqual({p["pedido"] for p in pagos}, {propio.id})
+
+        r = self.client.get(f"/api/v1/pedidos/{ajeno.id}/", **auth)
+        self.assertEqual(r.status_code, 404)
+
+    def test_cliente_no_puede_cambiar_estado_del_pedido(self):
+        pedido = Pedido.objects.create(usuario=self.cliente)
+        auth = self.token_de(self.cliente)
+        r = self.client.patch(f"/api/v1/pedidos/{pedido.id}/", {"estado": "Entregado"},
+                              content_type="application/json", **auth)
+        self.assertEqual(r.status_code, 403)
+
+    def test_carrito_siempre_queda_a_nombre_del_cliente(self):
+        auth = self.token_de(self.cliente)
+        r = self.client.post("/api/v1/carritos/", {"usuario": self.otro_cliente.id,
+                             "producto": self.producto.id, "cantidad": 1}, **auth)
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(r.json()["usuario"], self.cliente.id)
+
+    def test_compra_completa_desde_la_app(self):
+        auth = self.token_de(self.cliente)
+        self.client.post("/api/v1/carritos/", {"usuario": self.cliente.id,
+                         "producto": self.producto.id, "cantidad": 1}, **auth)
+        r = self.client.post("/api/v1/pedidos/crear-desde-carrito/", {}, **auth)
+        self.assertEqual(r.status_code, 200)
+        pedido_id = r.json()["pedido"]["id"]
+        r = self.client.post(f"/api/v1/pedidos/{pedido_id}/registrar-pago/", {"metodo": "Efectivo"}, **auth)
+        self.assertEqual(r.status_code, 200)

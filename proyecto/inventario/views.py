@@ -2096,9 +2096,33 @@ from rest_framework.viewsets import ModelViewSet
 from drf_spectacular.utils import extend_schema
 
 from inventario.authentication import ExpiringTokenAuthentication
-from .permissions import IsStaffOrReadOnly 
+from .permissions import IsStaffOrReadOnly, SoloLecturaParaClientes
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.decorators import action
+
+
+class SoloDelClienteMixin:
+    """
+    Un cliente de la app solo ve sus propios registros (carrito, pedidos,
+    detalles y pagos). El staff de la API sigue viendo todo.
+    campo_usuario es la ruta hasta el Usuario dueño del registro.
+    """
+    campo_usuario = "usuario"
+
+    def usuario_app(self):
+        correo = self.request.user.email
+        if not correo:
+            return None
+        return Usuario.objects.filter(correo=correo).first()
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_staff:
+            return qs
+        usuario = self.usuario_app()
+        if usuario is None:
+            return qs.none()
+        return qs.filter(**{self.campo_usuario: usuario})
 
 
 
@@ -2154,12 +2178,28 @@ class ProveedorViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-class CarritoViewSet(viewsets.ModelViewSet):
+class CarritoViewSet(SoloDelClienteMixin, viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     queryset = Carrito.objects.all()
     serializer_class = CarritoSerializer
+
+    # Un cliente solo puede agregar productos a su propio carrito
+    def _guardar(self, serializer):
+        if self.request.user.is_staff:
+            serializer.save()
+            return
+        usuario = self.usuario_app()
+        if usuario is None:
+            raise PermissionDenied("Usuario no encontrado.")
+        serializer.save(usuario=usuario)
+
+    def perform_create(self, serializer):
+        self._guardar(serializer)
+
+    def perform_update(self, serializer):
+        self._guardar(serializer)
 
     @extend_schema(
             summary="Lista de carritos",
@@ -2168,10 +2208,11 @@ class CarritoViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
             return super().list(request, *args, **kwargs)
 
-class PedidoViewSet(viewsets.ModelViewSet):
+class PedidoViewSet(SoloDelClienteMixin, viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
-    permission_classes = [IsAuthenticated]
-    
+    permission_classes = [IsAuthenticated, SoloLecturaParaClientes]
+    acciones_cliente = ("crear_desde_carrito", "registrar_pago_api")
+
     queryset = Pedido.objects.all()
     serializer_class = PedidoSerializer
 
@@ -2268,10 +2309,11 @@ class PedidoViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'detail': str(e)}, status=500)
 
-class DetallePedidoViewSet(viewsets.ModelViewSet):
+class DetallePedidoViewSet(SoloDelClienteMixin, viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
-    permission_classes = [IsAuthenticated]
-    
+    permission_classes = [IsAuthenticated, SoloLecturaParaClientes]
+    campo_usuario = "pedido__usuario"
+
     queryset = DetallePedido.objects.all()
     serializer_class = DetallePedidoSerializer
 
@@ -2282,10 +2324,11 @@ class DetallePedidoViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-class PagoViewSet(viewsets.ModelViewSet):
+class PagoViewSet(SoloDelClienteMixin, viewsets.ModelViewSet):
     authentication_classes = [SessionAuthentication, ExpiringTokenAuthentication]
-    permission_classes = [IsAuthenticated]
-    
+    permission_classes = [IsAuthenticated, SoloLecturaParaClientes]
+    campo_usuario = "pedido__usuario"
+
     queryset = Pago.objects.all()
     serializer_class = PagoSerializer
 
@@ -2395,7 +2438,11 @@ def api_login(request):
         # 2. Validamos la contraseña usando TU función de utilidades
         if not verificar_password(q, clave):
             return Response({'detail': 'Las credenciales no son válidas.'}, status=401)
-            
+
+        # La app móvil es solo para clientes
+        if q.rol != "Cliente":
+            return Response({'error': 'La aplicación móvil es solo para clientes. Ingresa por la página web.'}, status=403)
+
         # 3. Sincronizamos con el User nativo de Django para el sistema de Tokens
         user_django, created = User.objects.get_or_create(username=correo, email=correo)
         if created:
